@@ -109,6 +109,7 @@ class pFedMe(Server):
             self.receive_models()
             self.aggregate_parameters()
             self.beta_aggregate_parameters()
+            self.save_global_model()
 
         print("\nBest global results.")
         self.print_(max(self.rs_test_acc), max(

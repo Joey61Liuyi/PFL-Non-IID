@@ -89,6 +89,16 @@ class clientpFedMe(Client):
                 x = x.to(self.device)
                 y = y.to(self.device)
                 output = self.model(x)
+                if isinstance(output, tuple):
+                    output = output[1]
+
+                if isinstance(output, list):
+                    assert len(output) == 2, "output must has {:} items instead of {:}".format(
+                        2, len(output)
+                    )
+                    output, output_aux = output
+                else:
+                    output, output_aux = output, None
                 test_acc += (torch.sum(torch.argmax(output, dim=1) == y)).item()
                 test_num += y.shape[0]
 
@@ -108,6 +118,16 @@ class clientpFedMe(Client):
             x = x.to(self.device)
             y = y.to(self.device)
             output = self.model(x)
+            if isinstance(output, tuple):
+                output = output[1]
+
+            if isinstance(output, list):
+                assert len(output) == 2, "output must has {:} items instead of {:}".format(
+                    2, len(output)
+                )
+                output, output_aux = output
+            else:
+                output, output_aux = output, None
             train_acc += (torch.sum(torch.argmax(output, dim=1) == y)).item()
             train_num += y.shape[0]
             loss += self.loss(output, y).item() * y.shape[0]

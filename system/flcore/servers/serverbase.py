@@ -140,6 +140,10 @@ class Server(object):
         model_path = os.path.join("models", self.dataset)
         if not os.path.exists(model_path):
             os.makedirs(model_path)
+
+        checkpoint_dict = {
+
+        }
         torch.save(self.global_model, os.path.join(model_path, self.algorithm + "_server" + ".pt"))
 
     # def load_model(self):
