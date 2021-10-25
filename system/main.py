@@ -18,7 +18,8 @@ from flcore.trainmodel.models import *
 from flcore.trainmodel.resnet import resnet18 as resnet
 from utils.result_utils import average_data
 from utils.mem_utils import MemReporter
-
+from models import Networks, obtain_model
+from collections import namedtuple
 warnings.simplefilter("ignore")
 torch.manual_seed(0)
 
@@ -87,7 +88,25 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
         elif model == "TextCNN":
             Model = TextCNN(hidden_dim=hidden_dim, max_len=max_len, vocab_size=vocab_size, 
                             num_labels=num_labels).to(device)
-                
+
+        elif (model in Networks):
+            model_config_dict = {
+                "super_type": "infer-nasnet.cifar",
+                "genotype": "none",
+                "dataset": "cifar",
+                "class_num": 10,
+                "ichannel": 33,
+                "layers": 3,
+                "stem_multi": 3,
+                "auxiliary": 1,
+                "drop_path_prob": 0.2
+            }
+            Arguments = namedtuple("Configure", " ".join(model_config_dict.keys()))
+            content = Arguments(**model_config_dict)
+            genotype = Networks[model]
+            Model = obtain_model(content, genotype)
+            Model = Model.to(device)
+
 
         # select algorithm
         if algorithm == "FedAvg":
@@ -159,22 +178,22 @@ if __name__ == "__main__":
     parser.add_argument('-dev', "--device", type=str, default="cuda",
                         choices=["cpu", "cuda"])
     parser.add_argument('-did', "--device_id", type=str, default="0")
-    parser.add_argument('-data', "--dataset", type=str, default="mnist",
+    parser.add_argument('-data', "--dataset", type=str, default="Cifar10",
                         choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", \
                         "sogounews"])
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
-    parser.add_argument('-m', "--model", type=str, default="cnn")
-    parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
+    parser.add_argument('-m', "--model", type=str, default="DARTS")
+    parser.add_argument('-lbs', "--local_batch_size", type=int, default=96)
     parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.005,
                         help="Local learning rate")
-    parser.add_argument('-gr', "--global_rounds", type=int, default=1000)
-    parser.add_argument('-ls', "--local_steps", type=int, default=20)
-    parser.add_argument('-algo', "--algorithm", type=str, default="FedAvg",
+    parser.add_argument('-gr', "--global_rounds", type=int, default=100)
+    parser.add_argument('-ls', "--local_steps", type=int, default=3)
+    parser.add_argument('-algo', "--algorithm", type=str, default="pFedMe",
                         choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \
                         "FedFomo", "MOCHA", "FedPlayer", "FedAMP", "HeurFedAMP"])
     parser.add_argument('-jc', "--join_clients", type=int, default=5,
                         help="Number of clients per round")
-    parser.add_argument('-nc', "--num_clients", type=int, default=20,
+    parser.add_argument('-nc', "--num_clients", type=int, default=5,
                         help="Total number of clients")
     parser.add_argument('-t', "--times", type=int, default=1,
                         help="Running times")
@@ -275,6 +294,12 @@ if __name__ == "__main__":
     #     on_trace_ready=torch.profiler.tensorboard_trace_handler('./log')
     #     ) as prof:
     # with torch.autograd.profiler.profile(profile_memory=True) as prof:
+
+    wandb_project = "Dirichlet_Federated_NAS_inference"
+    run_name = "{}-{}-{}".format(config.model, config.algorithm, config.dataset)
+    resume_str = None
+    import wandb
+    wandb.init(project=wandb_project, name=run_name, resume=resume_str)
     run(
         goal=config.goal,
         dataset=config.dataset,

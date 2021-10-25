@@ -5,7 +5,7 @@ import h5py
 import copy
 import time
 import random
-
+import wandb
 
 class Server(object):
     def __init__(self, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
@@ -202,6 +202,7 @@ class Server(object):
         self.rs_train_acc.append(train_acc)
         self.rs_train_loss.append(train_loss)
         self.print_(test_acc, train_acc, train_loss)
+        return test_acc, train_acc, train_loss
 
 
     def print_(self, test_acc, train_acc, train_loss):

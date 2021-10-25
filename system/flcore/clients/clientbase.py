@@ -24,8 +24,8 @@ class Client(object):
         self.learning_rate = learning_rate
         self.local_steps = local_steps
 
-        self.trainloader = DataLoader(train_data, self.batch_size, drop_last=True)
-        self.testloader = DataLoader(test_data, self.batch_size, drop_last=True)
+        self.trainloader = DataLoader(train_data, self.batch_size, drop_last=False)
+        self.testloader = DataLoader(test_data, self.batch_size, drop_last=False)
         self.trainloaderfull = DataLoader(train_data, self.batch_size, drop_last=False)
         self.testloaderfull = DataLoader(test_data, self.batch_size, drop_last=False)
         self.iter_trainloader = iter(self.trainloader)
@@ -53,13 +53,23 @@ class Client(object):
         test_num = 0
         
         with torch.no_grad():
-            for x, y in self.testloaderfull:
+            for x, y in self.testloader:
                 if type(x) == type([]):
                     x[0] = x[0].to(self.device)
                 else:
                     x = x.to(self.device)
                 y = y.to(self.device)
                 output = self.model(x)
+                if isinstance(output, tuple):
+                    output = output[1]
+
+                if isinstance(output, list):
+                    assert len(output) == 2, "output must has {:} items instead of {:}".format(
+                        2, len(output)
+                    )
+                    output, output_aux = output
+                else:
+                    output, output_aux = output, None
                 test_acc += (torch.sum(torch.argmax(output, dim=1) == y)).item()
                 test_num += y.shape[0]
 
@@ -81,6 +91,17 @@ class Client(object):
                 x = x.to(self.device)
             y = y.to(self.device)
             output = self.model(x)
+            if isinstance(output, tuple):
+                output = output[1]
+
+            if isinstance(output, list):
+                assert len(output) == 2, "output must has {:} items instead of {:}".format(
+                    2, len(output)
+                )
+                output, output_aux = output
+            else:
+                output, output_aux = output, None
+
             train_acc += (torch.sum(torch.argmax(output, dim=1) == y)).item()
             train_num += y.shape[0]
             loss += self.loss(output, y).item() * y.shape[0]

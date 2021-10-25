@@ -6,11 +6,12 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 from utils.dataset_utils import check, separate_data, split_data, save_file
-
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 random.seed(1)
 np.random.seed(1)
-num_clients = 20
+num_clients = 5
 num_labels = 10
 dir_path = "Cifar10/"
 

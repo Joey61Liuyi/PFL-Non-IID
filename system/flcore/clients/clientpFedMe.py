@@ -36,21 +36,32 @@ class clientpFedMe(Client):
             max_local_steps = np.random.randint(1, max_local_steps // 2)
 
         for step in range(max_local_steps):  # local update
-            x, y = self.get_next_train_batch()
+            for i, (x, y) in enumerate(self.trainloader):
+                x = x.to(self.device)
+                y = y.to(self.device)
+                # K is number of personalized steps
+                for i in range(self.K):
+                    self.optimizer.zero_grad()
+                    output = self.model(x)
+                    if isinstance(output, tuple):
+                        output = output[1]
 
-            # K is number of personalized steps
-            for i in range(self.K):
-                self.optimizer.zero_grad()
-                output = self.model(x)
-                loss = self.loss(output, y)
-                loss.backward()
-                # finding aproximate theta
-                self.personalized_params = self.optimizer.step(self.local_params, self.device)
+                    if isinstance(output, list):
+                        assert len(output) == 2, "output must has {:} items instead of {:}".format(
+                            2, len(output)
+                        )
+                        output, output_aux = output
+                    else:
+                        output, output_aux = output, None
+                    loss = self.loss(output, y)
+                    loss.backward()
+                    # finding aproximate theta
+                    self.personalized_params = self.optimizer.step(self.local_params, self.device)
 
-            # update local weight after finding aproximate theta
-            for new_param, localweight in zip(self.personalized_params, self.local_params):
-                localweight = localweight.to(self.device)
-                localweight.data = localweight.data - self.lamda * self.learning_rate * (localweight.data - new_param.data)
+                # update local weight after finding aproximate theta
+                for new_param, localweight in zip(self.personalized_params, self.local_params):
+                    localweight = localweight.to(self.device)
+                    localweight.data = localweight.data - self.lamda * self.learning_rate * (localweight.data - new_param.data)
 
         # self.model.cpu()
 
