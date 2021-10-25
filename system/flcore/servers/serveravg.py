@@ -93,6 +93,7 @@ class FedAvg(Server):
 
             self.receive_models()
             self.aggregate_parameters()
+            self.save_global_model_middle(i)
 
         print("\nBest global results.")
         self.print_(max(self.rs_test_acc), max(

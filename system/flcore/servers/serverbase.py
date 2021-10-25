@@ -140,11 +140,18 @@ class Server(object):
         model_path = os.path.join("models", self.dataset)
         if not os.path.exists(model_path):
             os.makedirs(model_path)
+        torch.save(self.global_model, os.path.join(model_path, self.algorithm + "_server" + ".pt"))
+
+    def save_global_model_middle(self, epoch):
+        model_path = os.path.join("models", self.dataset)
+        if not os.path.exists(model_path):
+            os.makedirs(model_path)
 
         checkpoint_dict = {
-
+            "epoch": epoch,
+            "model_dict": self.global_model.state_dict()
         }
-        torch.save(self.global_model, os.path.join(model_path, self.algorithm + "_server" + ".pt"))
+        torch.save(checkpoint_dict, os.path.join(model_path, self.algorithm + "_server" + ".pth"))
 
     # def load_model(self):
     #     model_path = os.path.join("models", self.dataset, "server" + ".pt")

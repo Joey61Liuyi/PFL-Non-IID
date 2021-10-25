@@ -188,7 +188,7 @@ if __name__ == "__main__":
                         help="Local learning rate")
     parser.add_argument('-gr', "--global_rounds", type=int, default=100)
     parser.add_argument('-ls', "--local_steps", type=int, default=3)
-    parser.add_argument('-algo', "--algorithm", type=str, default="pFedMe",
+    parser.add_argument('-algo', "--algorithm", type=str, default="FedAvg",
                         choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \
                         "FedFomo", "MOCHA", "FedPlayer", "FedAMP", "HeurFedAMP"])
     parser.add_argument('-jc', "--join_clients", type=int, default=5,
