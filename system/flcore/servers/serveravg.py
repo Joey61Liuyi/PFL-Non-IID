@@ -78,12 +78,13 @@ class FedAvg(Server):
                 print("\nEvaluate global model")
                 test_acc, train_acc, train_loss = self.evaluate()
                 info_dict = {
-                    "average_valid_top1_acc": test_acc,
+                    "average_valid_top1_acc": test_acc*100,
                     "epoch": i
                 }
                 wandb.log(info_dict)
             self.selected_clients = self.select_clients()
             for client in self.selected_clients:
+                client.scheduler.step(i)
                 client.train()
 
             # threads = [Thread(target=client.train)

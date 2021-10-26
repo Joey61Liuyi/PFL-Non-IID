@@ -12,7 +12,9 @@ class clientAVG(Client):
                          local_steps)
 
         self.loss = nn.CrossEntropyLoss()
+
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=100)
 
     def train(self):
         start_time = time.time()

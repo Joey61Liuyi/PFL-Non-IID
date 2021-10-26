@@ -5,6 +5,8 @@ import os
 import time
 import warnings
 import numpy as np
+import wandb
+
 
 from flcore.servers.serveravg import FedAvg
 from flcore.servers.serverpFedMe import pFedMe
@@ -21,12 +23,20 @@ from utils.mem_utils import MemReporter
 from models import Networks, obtain_model
 from collections import namedtuple
 warnings.simplefilter("ignore")
-torch.manual_seed(0)
+import random
 
 # hyper-params for Text tasks
 vocab_size = 98635
 max_len=200
 hidden_dim=32
+
+
+def prepare_seed(rand_seed):
+    random.seed(rand_seed)
+    np.random.seed(rand_seed)
+    torch.manual_seed(rand_seed)
+    torch.cuda.manual_seed(rand_seed)
+    torch.cuda.manual_seed_all(rand_seed)
 
 def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, local_learning_rate, global_rounds, local_steps, join_clients, 
         num_clients, beta, lamda, K, p_learning_rate, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, 
@@ -184,7 +194,7 @@ if __name__ == "__main__":
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
     parser.add_argument('-m', "--model", type=str, default="DARTS")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=96)
-    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.005,
+    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.025,
                         help="Local learning rate")
     parser.add_argument('-gr', "--global_rounds", type=int, default=100)
     parser.add_argument('-ls', "--local_steps", type=int, default=3)
@@ -219,7 +229,7 @@ if __name__ == "__main__":
                         help="Proximal rate for FedProx")
     parser.add_argument('-K', "--K", type=int, default=5,
                         help="Number of personalized training steps for pFedMe")
-    parser.add_argument('-lrp', "--p_learning_rate", type=float, default=0.01,
+    parser.add_argument('-lrp', "--p_learning_rate", type=float, default=0.025,
                         help="personalized learning rate to caculate theta aproximately using K steps")
     # FedFomo
     parser.add_argument('-M', "--M", type=int, default=5,
@@ -295,43 +305,48 @@ if __name__ == "__main__":
     #     ) as prof:
     # with torch.autograd.profiler.profile(profile_memory=True) as prof:
 
-    wandb_project = "Dirichlet_Federated_NAS_inference"
-    run_name = "{}-{}-{}".format(config.model, config.algorithm, config.dataset)
-    resume_str = None
-    import wandb
-    wandb.init(project=wandb_project, name=run_name, resume=resume_str)
-    run(
-        goal=config.goal,
-        dataset=config.dataset,
-        num_labels=config.num_labels,
-        device=config.device,
-        algorithm=config.algorithm,
-        model=config.model,
-        local_batch_size=config.local_batch_size,
-        local_learning_rate=config.local_learning_rate,
-        global_rounds=config.global_rounds,
-        local_steps=config.local_steps,
-        join_clients=config.join_clients,
-        num_clients=config.num_clients,
-        beta=config.beta,
-        lamda=config.lamda,
-        K=config.K,
-        p_learning_rate=config.p_learning_rate,
-        times=config.times,
-        eval_gap=config.eval_gap,
-        client_drop_rate=config.client_drop_rate,
-        train_slow_rate=config.train_slow_rate,
-        send_slow_rate=config.send_slow_rate,
-        time_select=config.time_select, 
-        time_threthold=config.time_threthold, 
-        M = config.M,
-        mu=config.mu,
-        itk=config.itk,
-        alphaK=config.alphaK,
-        sigma=config.sigma,
-        xi=config.xi,
-    )
+    model_list = ["DARTS", "GDAS_V1"]
+    # model_list = ["resnet", "GDAS_V1"]
+    for model in model_list:
+        seed = 666
+        prepare_seed(seed)
+        wandb_project = "Dirichlet_Federated_NAS_inference"
+        run_name = "{}-{}-{}".format(model, config.algorithm, config.dataset)
+        resume_str = None
+        wandb.init(project=wandb_project, name=run_name, resume=resume_str)
+        run(
+            goal=config.goal,
+            dataset=config.dataset,
+            num_labels=config.num_labels,
+            device=config.device,
+            algorithm=config.algorithm,
+            model=model,
+            local_batch_size=config.local_batch_size,
+            local_learning_rate=config.local_learning_rate,
+            global_rounds=config.global_rounds,
+            local_steps=config.local_steps,
+            join_clients=config.join_clients,
+            num_clients=config.num_clients,
+            beta=config.beta,
+            lamda=config.lamda,
+            K=config.K,
+            p_learning_rate=config.p_learning_rate,
+            times=config.times,
+            eval_gap=config.eval_gap,
+            client_drop_rate=config.client_drop_rate,
+            train_slow_rate=config.train_slow_rate,
+            send_slow_rate=config.send_slow_rate,
+            time_select=config.time_select,
+            time_threthold=config.time_threthold,
+            M = config.M,
+            mu=config.mu,
+            itk=config.itk,
+            alphaK=config.alphaK,
+            sigma=config.sigma,
+            xi=config.xi,
+        )
+        wandb.finish()
 
-    
-    # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
-    # print(f"\nTotal time cost: {round(time.time()-total_start, 2)}s.")
+
+        # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
+        # print(f"\nTotal time cost: {round(time.time()-total_start, 2)}s.")
