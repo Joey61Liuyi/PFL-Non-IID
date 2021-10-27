@@ -106,7 +106,7 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
                 "dataset": "cifar",
                 "class_num": 10,
                 "ichannel": 33,
-                "layers": 3,
+                "layers": 2,
                 "stem_multi": 3,
                 "auxiliary": 1,
                 "drop_path_prob": 0.2
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
     parser.add_argument('-m', "--model", type=str, default="DARTS")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=96)
-    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.025,
+    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.005,
                         help="Local learning rate")
     parser.add_argument('-gr', "--global_rounds", type=int, default=100)
     parser.add_argument('-ls', "--local_steps", type=int, default=3)
@@ -218,7 +218,7 @@ if __name__ == "__main__":
                         help="The rate for slow clients when sending global model")
     parser.add_argument('-ts', "--time_select", type=bool, default=False,
                         help="Whether to group and select clients at each round according to time cost")
-    parser.add_argument('-tth', "--time_threthold", type=float, default=10000,
+    parser.add_argument('-tth', "--time_threthold", type=float, default=float("inf"),
                         help="The threthold for droping slow clients")
     # pFedMe / PerAvg / FedProx / FedAMP / HeurFedAMP
     parser.add_argument('-bt', "--beta", type=float, default=0.0,

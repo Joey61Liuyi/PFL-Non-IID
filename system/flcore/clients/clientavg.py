@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from flcore.clients.clientbase import Client
+from flcore.optimizers.fedoptimizer import CosineAnnealingLR
 import numpy as np
 import time
 
@@ -13,8 +14,8 @@ class clientAVG(Client):
 
         self.loss = nn.CrossEntropyLoss()
 
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=100)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum = 0.9, weight_decay=0.0005, nesterov=1)
+        self.scheduler = CosineAnnealingLR(self.optimizer, 5, 95, 95, 0.0)
 
     def train(self):
         start_time = time.time()
@@ -32,6 +33,7 @@ class clientAVG(Client):
 
             for i, (x, y) in enumerate(self.trainloader):
             # x, y = self.get_next_train_batch()
+                self.scheduler.update(None, 1.0*i/len(self.trainloader))
                 self.optimizer.zero_grad()
                 x = x.to(self.device)
                 y = y.to(self.device)

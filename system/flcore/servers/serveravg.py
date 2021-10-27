@@ -16,9 +16,6 @@ class FedAvg(Server):
                          time_threthold)
         # select slow clients
         self.set_slow_clients()
-
-
-
         if dataset == "Cifar10":
             mean = [x / 255 for x in [125.3, 123.0, 113.9]]
             std = [x / 255 for x in [63.0, 62.1, 66.7]]
@@ -62,7 +59,7 @@ class FedAvg(Server):
             for index in test_index:
                 test.append((test_set.data[index], test_set.targets[index]))
 
-            # train_new, test_new = read_client_data(dataset, i)
+            # train, test = read_client_data(dataset, i)
             client = clientAVG(device, i, train_slow, send_slow, train, test, model, batch_size, learning_rate, local_steps)
             self.clients.append(client)
 
@@ -84,7 +81,7 @@ class FedAvg(Server):
                 wandb.log(info_dict)
             self.selected_clients = self.select_clients()
             for client in self.selected_clients:
-                client.scheduler.step(i)
+                client.scheduler.update(i, 0.0)
                 client.train()
 
             # threads = [Thread(target=client.train)
