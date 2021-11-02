@@ -74,7 +74,7 @@ class FedAvg(Server):
             if i%self.eval_gap == 0:
                 print(f"\n-------------Round number: {i}-------------")
                 print("\nEvaluate global model")
-                test_acc, train_acc, train_loss, personalized_acc = self.evaluate()
+                test_acc, train_acc, train_loss, personalized_acc = self.evaluate(i)
                 info_dict = {
                     "global_valid_top1_acc": test_acc*100,
                     "average_valid_top1_acc": personalized_acc*100,

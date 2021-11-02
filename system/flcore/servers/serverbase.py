@@ -175,18 +175,20 @@ class Server(object):
                 hf.create_dataset('rs_train_acc', data=self.rs_train_acc)
                 hf.create_dataset('rs_train_loss', data=self.rs_train_loss)
 
-    def test_accuracy(self):
+    def test_accuracy(self, epoch):
         num_samples = []
         tot_correct = []
         accuracy_list = []
+        info_dict = {"epoch": epoch}
         for c in self.clients:
             ct, ns, acc = c.test_accuracy()
             tot_correct.append(ct*1.0)
             num_samples.append(ns)
             accuracy_list.append(acc)
+            info_dict["{}user_a_top1".format(c.id)] = acc
 
+        wandb.log(info_dict)
         mean_acc = np.mean(accuracy_list)
-
         ids = [c.id for c in self.clients]
 
         return ids, num_samples, tot_correct, mean_acc
@@ -206,8 +208,8 @@ class Server(object):
         return ids, num_samples, tot_correct, losses
 
     # evaluate all clients
-    def evaluate(self):
-        stats = self.test_accuracy()
+    def evaluate(self, epoch):
+        stats = self.test_accuracy(epoch)
         stats_train = self.train_accuracy_and_loss()
 
         test_acc = sum(stats[2])*1.0 / sum(stats[1])
