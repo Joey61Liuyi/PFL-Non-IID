@@ -90,7 +90,7 @@ class pFedMe(Server):
                     "average_valid_top1_acc": test_acc,
                     "epoch": i
                 }
-                wandb.log(info_dict)
+                # wandb.log(info_dict)
 
             self.selected_clients = self.select_clients()
             for client in self.selected_clients:

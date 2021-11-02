@@ -24,8 +24,8 @@ class Client(object):
         self.learning_rate = learning_rate
         self.local_steps = local_steps
 
-        self.trainloader = DataLoader(train_data, self.batch_size, drop_last=False)
-        self.testloader = DataLoader(test_data, self.batch_size, drop_last=False)
+        self.trainloader = DataLoader(train_data, self.batch_size, drop_last=True)
+        self.testloader = DataLoader(test_data, self.batch_size, drop_last=True)
         self.trainloaderfull = DataLoader(train_data, self.batch_size, drop_last=False)
         self.testloaderfull = DataLoader(test_data, self.batch_size, drop_last=False)
         self.iter_trainloader = iter(self.trainloader)
@@ -75,7 +75,7 @@ class Client(object):
 
         # self.model.cpu()
         
-        return test_acc, test_num
+        return test_acc, test_num, test_acc/test_num
 
     def train_accuracy_and_loss(self):
         # self.model.to(self.device)

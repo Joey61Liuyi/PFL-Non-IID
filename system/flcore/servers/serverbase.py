@@ -36,6 +36,7 @@ class Server(object):
         self.rs_train_acc = []
         self.rs_train_loss = []
         self.rs_test_acc = []
+        self.rs_personalized_acc = []
 
         self.times = times
         self.eval_gap = eval_gap
@@ -177,14 +178,18 @@ class Server(object):
     def test_accuracy(self):
         num_samples = []
         tot_correct = []
+        accuracy_list = []
         for c in self.clients:
-            ct, ns = c.test_accuracy()
+            ct, ns, acc = c.test_accuracy()
             tot_correct.append(ct*1.0)
             num_samples.append(ns)
+            accuracy_list.append(acc)
+
+        mean_acc = np.mean(accuracy_list)
 
         ids = [c.id for c in self.clients]
 
-        return ids, num_samples, tot_correct
+        return ids, num_samples, tot_correct, mean_acc
 
     def train_accuracy_and_loss(self):
         num_samples = []
@@ -208,15 +213,18 @@ class Server(object):
         test_acc = sum(stats[2])*1.0 / sum(stats[1])
         train_acc = sum(stats_train[2])*1.0 / sum(stats_train[1])
         train_loss = sum(stats_train[3])*1.0 / sum(stats_train[1])
+        personalized_acc = stats[3]
         
         self.rs_test_acc.append(test_acc)
         self.rs_train_acc.append(train_acc)
         self.rs_train_loss.append(train_loss)
-        self.print_(test_acc, train_acc, train_loss)
-        return test_acc, train_acc, train_loss
+        self.rs_personalized_acc.append(personalized_acc)
+        self.print_(test_acc, train_acc, train_loss, personalized_acc)
+        return test_acc, train_acc, train_loss, personalized_acc
 
 
-    def print_(self, test_acc, train_acc, train_loss):
-        print("Average Test Accurancy: {:.4f}".format(test_acc))
+    def print_(self, test_acc, train_acc, train_loss, personalized_acc):
+        print("Average Personalized Test Accurancy: {:.4f}".format(personalized_acc))
+        print("Global Test Accurancy: {:.4f}".format(test_acc))
         print("Average Train Accurancy: {:.4f}".format(train_acc))
         print("Average Train Loss: {:.4f}".format(train_loss))

@@ -192,12 +192,12 @@ if __name__ == "__main__":
                         choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", \
                         "sogounews"])
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
-    parser.add_argument('-m', "--model", type=str, default="DARTS")
+    parser.add_argument('-m', "--model", type=str, default="cnn")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=96)
-    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.005,
+    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.025,
                         help="Local learning rate")
     parser.add_argument('-gr', "--global_rounds", type=int, default=100)
-    parser.add_argument('-ls', "--local_steps", type=int, default=3)
+    parser.add_argument('-ls', "--local_steps", type=int, default=1)
     parser.add_argument('-algo', "--algorithm", type=str, default="FedAvg",
                         choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \
                         "FedFomo", "MOCHA", "FedPlayer", "FedAMP", "HeurFedAMP"])
@@ -310,7 +310,7 @@ if __name__ == "__main__":
     for model in model_list:
         seed = 666
         prepare_seed(seed)
-        wandb_project = "Dirichlet_Federated_NAS_inference"
+        wandb_project = "Trial_New"
         run_name = "{}-{}-{}".format(model, config.algorithm, config.dataset)
         resume_str = None
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)

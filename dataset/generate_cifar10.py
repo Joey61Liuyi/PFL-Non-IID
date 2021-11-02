@@ -71,7 +71,10 @@ def generate_cifar10(dir_path, num_clients, num_labels, niid=False, real=True, p
 
 if __name__ == "__main__":
     niid = True if sys.argv[1] == "noniid" else False
-    real = True if sys.argv[2] == "realworld" else False
-    partition = sys.argv[3] if sys.argv[3] != "-" else None
-
+    real = False
+    partition = None
+    if len(sys.argv) > 2:
+        real = True if sys.argv[2] == "realworld" else False
+    if len(sys.argv) > 3:
+        partition = sys.argv[3] if sys.argv[3] != "-" else None
     generate_cifar10(dir_path, num_clients, num_labels, niid, real, partition)

@@ -45,9 +45,9 @@ class FedAvg(Server):
             for _, train_data in enumerate(testloader, 0):
                 test_set.data, test_set.targets = train_data
 
-        user_data = np.load('./Dirichlet_0.1_Use_valid_False_{}_non_iid_setting.npy'.format(dataset),
+        user_data = np.load('./Dirichlet_0.5_Use_valid_False_{}_non_iid_setting.npy'.format(dataset),
                             allow_pickle=True).item()
-
+        train_all = []
         for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
 
             train_index = user_data[i]["train"] + user_data[i]["test"]
@@ -62,6 +62,7 @@ class FedAvg(Server):
             # train, test = read_client_data(dataset, i)
             client = clientAVG(device, i, train_slow, send_slow, train, test, model, batch_size, learning_rate, local_steps)
             self.clients.append(client)
+            train_all.append(train)
 
         print(f"\nJoin clients / total clients: {self.join_clients} / {self.num_clients}")
         print("Finished creating server and clients.")
@@ -73,14 +74,16 @@ class FedAvg(Server):
             if i%self.eval_gap == 0:
                 print(f"\n-------------Round number: {i}-------------")
                 print("\nEvaluate global model")
-                test_acc, train_acc, train_loss = self.evaluate()
+                test_acc, train_acc, train_loss, personalized_acc = self.evaluate()
                 info_dict = {
-                    "average_valid_top1_acc": test_acc*100,
+                    "global_valid_top1_acc": test_acc*100,
+                    "average_valid_top1_acc": personalized_acc*100,
                     "epoch": i
                 }
+                # print(info_dict)
                 wandb.log(info_dict)
-            self.selected_clients = self.select_clients()
-            for client in self.selected_clients:
+            self.selected_clients = self.clients
+            for client in self.clients:
                 client.scheduler.update(i, 0.0)
                 client.train()
 

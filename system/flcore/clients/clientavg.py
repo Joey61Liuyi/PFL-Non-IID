@@ -14,7 +14,7 @@ class clientAVG(Client):
 
         self.loss = nn.CrossEntropyLoss()
 
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum = 0.9, weight_decay=0.0005, nesterov=1)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=0.025, momentum = 0.9, weight_decay=0.0005, nesterov=1)
         self.scheduler = CosineAnnealingLR(self.optimizer, 5, 95, 95, 0.0)
 
     def train(self):
