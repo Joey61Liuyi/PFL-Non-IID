@@ -195,7 +195,7 @@ if __name__ == "__main__":
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
     parser.add_argument('-m', "--model", type=str, default="cnn")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=96)
-    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.025,
+    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.015,
                         help="Local learning rate")
     parser.add_argument('-gr', "--global_rounds", type=int, default=120)
     parser.add_argument('-ls', "--local_steps", type=int, default=1)
@@ -230,7 +230,7 @@ if __name__ == "__main__":
                         help="Proximal rate for FedProx")
     parser.add_argument('-K', "--K", type=int, default=5,
                         help="Number of personalized training steps for pFedMe")
-    parser.add_argument('-lrp', "--p_learning_rate", type=float, default=0.025,
+    parser.add_argument('-lrp', "--p_learning_rate", type=float, default=0.015,
                         help="personalized learning rate to caculate theta aproximately using K steps")
     # FedFomo
     parser.add_argument('-M', "--M", type=int, default=5,
@@ -306,13 +306,13 @@ if __name__ == "__main__":
     #     ) as prof:
     # with torch.autograd.profiler.profile(profile_memory=True) as prof:
 
-    model_list = ["DARTS", "GDAS_V1"]
+    model_list = ["DARTS"]
     # model_list = ["resnet", "GDAS_V1"]
     for model in model_list:
         seed = 666
         prepare_seed(seed)
         wandb_project = "Trial_New"
-        run_name = "{}-{}-{}".format(model, config.algorithm, config.dataset)
+        run_name = "{}-{}-{}-{}".format(model, config.algorithm, config.dataset, config.local_learning_rate)
         resume_str = None
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
         run(

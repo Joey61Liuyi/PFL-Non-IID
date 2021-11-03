@@ -8,7 +8,7 @@ from flcore.optimizers.fedoptimizer import CosineAnnealingLR
 model = torch.nn.Linear(10,10)
 optimizer = torch.optim.SGD(model.parameters(), lr = 0.005)
 # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=20)
-scheduler = CosineAnnealingLR(optimizer, 2,95, 95, 0.0)
+scheduler = CosineAnnealingLR(optimizer, 5,100, 95, 0.0)
 plot_list = []
 
 import matplotlib.pyplot as plt
