@@ -159,6 +159,7 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
                             send_slow_rate, time_select, goal, time_threthold, alphaK, lamda, sigma, xi)
 
+        del(model)
         server.train()
 
         time_list.append(time.time()-start)
@@ -196,7 +197,7 @@ if __name__ == "__main__":
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=96)
     parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.025,
                         help="Local learning rate")
-    parser.add_argument('-gr', "--global_rounds", type=int, default=100)
+    parser.add_argument('-gr', "--global_rounds", type=int, default=120)
     parser.add_argument('-ls', "--local_steps", type=int, default=1)
     parser.add_argument('-algo', "--algorithm", type=str, default="FedAvg",
                         choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \

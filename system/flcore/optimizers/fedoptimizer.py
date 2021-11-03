@@ -99,7 +99,17 @@ class CosineAnnealingLR(_LRScheduler):
                     self.current_epoch / self.warmup_epochs
                     + self.current_iter / self.warmup_epochs
                 ) * base_lr
+            #
+            # elif self.current_epoch >= self.max_epochs:
+            #     last_epoch = self.max_epochs - self.warmup_epochs -1
+            #     lr = (
+            #             self.eta_min
+            #             + (base_lr - self.eta_min)
+            #             * (1 + math.cos(math.pi * last_epoch / self.T_max))
+            #             / 2
+            #     )
             lrs.append(lr)
+
         return lrs
 
 

@@ -76,6 +76,7 @@ class FedAvg(Server):
                 print("\nEvaluate global model")
                 test_acc, train_acc, train_loss, personalized_acc = self.evaluate(i)
                 info_dict = {
+                    "learning_rate": np.mean(self.clients[0].scheduler.get_lr()),
                     "global_valid_top1_acc": test_acc*100,
                     "average_valid_top1_acc": personalized_acc*100,
                     "epoch": i
@@ -98,7 +99,7 @@ class FedAvg(Server):
 
         print("\nBest global results.")
         self.print_(max(self.rs_test_acc), max(
-            self.rs_train_acc), min(self.rs_train_loss))
+            self.rs_train_acc), min(self.rs_train_loss), personalized_acc)
 
         self.save_results()
         self.save_global_model()
