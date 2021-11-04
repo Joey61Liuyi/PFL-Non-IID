@@ -491,6 +491,8 @@ def get_cifar_models(config, extra_path=None):
                 current_epoch = xdata["epoch"]
                 genotype = xdata["genotypes"][current_epoch - 1]
 
+            elif isinstance(extra_path, dict):
+                genotype = extra_path
             else:  # reload genotype by extra_path
                 genotype = extra_path._asdict()
 

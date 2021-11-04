@@ -23,6 +23,8 @@ from utils.mem_utils import MemReporter
 from models import Networks, obtain_model
 from collections import namedtuple
 warnings.simplefilter("ignore")
+import ast
+import re
 import random
 
 # hyper-params for Text tasks
@@ -40,7 +42,7 @@ def prepare_seed(rand_seed):
 
 def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, local_learning_rate, global_rounds, local_steps, join_clients, 
         num_clients, beta, lamda, K, p_learning_rate, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, 
-        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi):
+        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi, genotype):
 
     time_list = []
     reporter = MemReporter()
@@ -99,7 +101,7 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             Model = TextCNN(hidden_dim=hidden_dim, max_len=max_len, vocab_size=vocab_size, 
                             num_labels=num_labels).to(device)
 
-        elif (model in Networks):
+        else:
             model_config_dict = {
                 "super_type": "infer-nasnet.cifar",
                 "genotype": "none",
@@ -113,10 +115,8 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             }
             Arguments = namedtuple("Configure", " ".join(model_config_dict.keys()))
             content = Arguments(**model_config_dict)
-            genotype = Networks[model]
             Model = obtain_model(content, genotype)
             Model = Model.to(device)
-
 
         # select algorithm
         if algorithm == "FedAvg":
@@ -193,7 +193,7 @@ if __name__ == "__main__":
                         choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", \
                         "sogounews"])
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
-    parser.add_argument('-m', "--model", type=str, default="DARTS")
+    parser.add_argument('-m', "--model", type=str, default="Searched")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=96)
     parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.025,
                         help="Local learning rate")
@@ -306,49 +306,81 @@ if __name__ == "__main__":
     #     ) as prof:
     # with torch.autograd.profiler.profile(profile_memory=True) as prof:
 
-    model_list = ["DARTS"]
-    learning_rate_list = [0.025]
+    log_dir = "./0.5Dirichlet_Serched_result.log"
+    model_owner = 0
     # model_list = ["resnet", "GDAS_V1"]
-    for lr in learning_rate_list:
-        seed = 666
-        prepare_seed(seed)
-        config.local_learning_rate = lr
-        wandb_project = "Trial_New"
-        run_name = "{}-{}-{}-{}".format(config.model, config.algorithm, config.dataset, config.local_learning_rate)
-        resume_str = None
-        wandb.init(project=wandb_project, name=run_name, resume=resume_str)
-        run(
-            goal=config.goal,
-            dataset=config.dataset,
-            num_labels=config.num_labels,
-            device=config.device,
-            algorithm=config.algorithm,
-            model=config.model,
-            local_batch_size=config.local_batch_size,
-            local_learning_rate=config.local_learning_rate,
-            global_rounds=config.global_rounds,
-            local_steps=config.local_steps,
-            join_clients=config.join_clients,
-            num_clients=config.num_clients,
-            beta=config.beta,
-            lamda=config.lamda,
-            K=config.K,
-            p_learning_rate=config.p_learning_rate,
-            times=config.times,
-            eval_gap=config.eval_gap,
-            client_drop_rate=config.client_drop_rate,
-            train_slow_rate=config.train_slow_rate,
-            send_slow_rate=config.send_slow_rate,
-            time_select=config.time_select,
-            time_threthold=config.time_threthold,
-            M = config.M,
-            mu=config.mu,
-            itk=config.itk,
-            alphaK=config.alphaK,
-            sigma=config.sigma,
-            xi=config.xi,
-        )
-        wandb.finish()
+    genotype_list = {}
+    user_list = {}
+    user = 0
+    for line in open(log_dir):
+        if "<<<--->>>" in line:
+            tep_dict = ast.literal_eval(re.search('({.+})', line).group(0))
+            count = 0
+            for j in tep_dict['normal']:
+                for k in j:
+                    if 'skip_connect' in k[0]:
+                        count += 1
+            if count == 2:
+                # if user%5 not in genotype_list:
+                # logger.log("user{}'s architecture is chosen from epoch {}".format(user%5, user//5))
+                genotype_list[user % 5] = tep_dict
+                user_list[user % 5] = user // 5
+            user += 1
+
+    for user in user_list:
+        print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
+    print(genotype_list)
+    model_owner = 0
+
+    if config.model in Networks:
+        genotype = Networks[config.model]
+        run_name = "{}-{}-{}".format(config.model, config.algorithm, config.dataset)
+    else:
+        if model_owner!=None:
+            genotype = genotype_list[model_owner]
+            run_name = "{}-{}-{}-{}".format(config.model, model_owner, config.algorithm, config.dataset)
+        else:
+            genotype = None
+
+    seed = 666
+    prepare_seed(seed)
+    wandb_project = "Trial_New"
+    # run_name = "{}-{}-{}-{}".format(config.model, config.algorithm, config.dataset, config.local_learning_rate)
+    resume_str = None
+    wandb.init(project=wandb_project, name=run_name, resume=resume_str)
+    run(
+        goal=config.goal,
+        dataset=config.dataset,
+        num_labels=config.num_labels,
+        device=config.device,
+        algorithm=config.algorithm,
+        model=config.model,
+        local_batch_size=config.local_batch_size,
+        local_learning_rate=config.local_learning_rate,
+        global_rounds=config.global_rounds,
+        local_steps=config.local_steps,
+        join_clients=config.join_clients,
+        num_clients=config.num_clients,
+        beta=config.beta,
+        lamda=config.lamda,
+        K=config.K,
+        p_learning_rate=config.p_learning_rate,
+        times=config.times,
+        eval_gap=config.eval_gap,
+        client_drop_rate=config.client_drop_rate,
+        train_slow_rate=config.train_slow_rate,
+        send_slow_rate=config.send_slow_rate,
+        time_select=config.time_select,
+        time_threthold=config.time_threthold,
+        M = config.M,
+        mu=config.mu,
+        itk=config.itk,
+        alphaK=config.alphaK,
+        sigma=config.sigma,
+        xi=config.xi,
+        genotype=genotype
+    )
+    wandb.finish()
 
 
         # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
