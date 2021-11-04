@@ -76,7 +76,7 @@ class FedAvg(Server):
                 print("\nEvaluate global model")
                 test_acc, train_acc, train_loss, personalized_acc = self.evaluate(i)
                 info_dict = {
-                    "learning_rate": np.mean(self.clients[0].scheduler.get_lr()),
+                    "learning_rate": self.clients[0].optimizer.state_dict()['param_groups'][0]['lr'],
                     "global_valid_top1_acc": test_acc*100,
                     "average_valid_top1_acc": personalized_acc*100,
                     "epoch": i

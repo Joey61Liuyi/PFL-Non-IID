@@ -193,9 +193,9 @@ if __name__ == "__main__":
                         choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", \
                         "sogounews"])
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
-    parser.add_argument('-m', "--model", type=str, default="cnn")
+    parser.add_argument('-m', "--model", type=str, default="DARTS")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=96)
-    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.015,
+    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.025,
                         help="Local learning rate")
     parser.add_argument('-gr', "--global_rounds", type=int, default=120)
     parser.add_argument('-ls', "--local_steps", type=int, default=1)
@@ -307,12 +307,14 @@ if __name__ == "__main__":
     # with torch.autograd.profiler.profile(profile_memory=True) as prof:
 
     model_list = ["DARTS"]
+    learning_rate_list = [0.025]
     # model_list = ["resnet", "GDAS_V1"]
-    for model in model_list:
+    for lr in learning_rate_list:
         seed = 666
         prepare_seed(seed)
+        config.local_learning_rate = lr
         wandb_project = "Trial_New"
-        run_name = "{}-{}-{}-{}".format(model, config.algorithm, config.dataset, config.local_learning_rate)
+        run_name = "{}-{}-{}-{}".format(config.model, config.algorithm, config.dataset, config.local_learning_rate)
         resume_str = None
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
         run(
@@ -321,7 +323,7 @@ if __name__ == "__main__":
             num_labels=config.num_labels,
             device=config.device,
             algorithm=config.algorithm,
-            model=model,
+            model=config.model,
             local_batch_size=config.local_batch_size,
             local_learning_rate=config.local_learning_rate,
             global_rounds=config.global_rounds,
