@@ -9,7 +9,7 @@ model = torch.nn.Linear(10,10)
 optimizer = torch.optim.SGD(model.parameters(), lr = 0.025)
 # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100)
 # scheduler = CosineAnnealingLR(optimizer, 5, 100, 95, 0.0)
-scheduler = OrCosineAnnealingLR(optimizer, 5, 100, 95, 6.408e-5)
+scheduler = OrCosineAnnealingLR(optimizer, 5, 100, 95, 1e-4)
 # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
 # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10, 20, 40, 60, 80, 90], gamma=0.65)
 
