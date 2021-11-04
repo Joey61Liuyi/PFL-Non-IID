@@ -127,6 +127,20 @@ class Client(object):
 
         return x, y
 
+    def nas_competetive_output(self, output):
+
+        if isinstance(output, tuple):
+            output = output[1]
+
+        if isinstance(output, list):
+            assert len(output) == 2, "output must has {:} items instead of {:}".format(
+                2, len(output)
+            )
+            output, output_aux = output
+        else:
+            output, output_aux = output, None
+
+        return output
 
     # def save_model(self):
     #     model_path = os.path.join("models", self.dataset)

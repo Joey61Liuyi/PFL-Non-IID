@@ -37,17 +37,7 @@ class clientAVG(Client):
                 x = x.to(self.device)
                 y = y.to(self.device)
                 output = self.model(x)
-                if isinstance(output, tuple):
-                    output = output[1]
-
-                if isinstance(output, list):
-                    assert len(output) == 2, "output must has {:} items instead of {:}".format(
-                        2, len(output)
-                    )
-                    output, output_aux = output
-                else:
-                    output, output_aux = output, None
-
+                output = self.nas_competetive_output(output)
                 loss = self.loss(output, y)
                 loss.backward()
                 self.optimizer.step()

@@ -7,7 +7,7 @@ from flcore.clients.clientfomo import clientFomo
 from flcore.servers.serverbase import Server
 from utils.data_utils import read_client_data
 from threading import Thread
-
+import wandb
 
 class FedFomo(Server):
     def __init__(self, device, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
@@ -40,10 +40,18 @@ class FedFomo(Server):
             if i%self.eval_gap == 0:
                 print(f"\n-------------Round number: {i}-------------")
                 print("\nEvaluate global model")
-                self.evaluate()
-
+                test_acc, train_acc, train_loss, personalized_acc = self.evaluate(i)
+                info_dict = {
+                    "learning_rate": self.clients[0].optimizer.state_dict()['param_groups'][0]['lr'],
+                    "global_valid_top1_acc": test_acc * 100,
+                    "average_valid_top1_acc": personalized_acc * 100,
+                    "epoch": i
+                }
+                # print(info_dict)
+                wandb.log(info_dict)
             self.selected_clients = self.select_clients()
             for client in self.selected_clients:
+                client.scheduler.update(i, 0.0)
                 client.train()
 
             # threads = [Thread(target=client.train)

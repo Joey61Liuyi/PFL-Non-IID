@@ -4,6 +4,7 @@ import numpy as np
 import time
 import copy
 from flcore.clients.clientbase import Client
+from flcore.optimizers.fedoptimizer import CosineAnnealingLR, OrCosineAnnealingLR
 from torch.utils.data import DataLoader
 
 
@@ -20,6 +21,7 @@ class clientFomo(Client):
 
         self.loss = nn.CrossEntropyLoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
+        self.scheduler = OrCosineAnnealingLR(self.optimizer, 5, 100, 95, 1e-4)
 
         self.val_ratio = 0.2
         val_idx = -int(self.val_ratio*len(train_data))
@@ -47,14 +49,17 @@ class clientFomo(Client):
             max_local_steps = np.random.randint(1, max_local_steps // 2)
 
         for step in range(max_local_steps):
-            if self.train_slow:
-                time.sleep(0.1 * np.abs(np.random.rand()))
-            x, y = self.get_next_train_batch()
-            self.optimizer.zero_grad()
-            output = self.model(x)
-            loss = self.loss(output, y)
-            loss.backward()
-            self.optimizer.step()
+            for i, (x, y) in enumerate(self.trainloader):
+                self.scheduler.update(None, 1.0 * i / len(self.trainloader))
+                if self.train_slow:
+                    time.sleep(0.1 * np.abs(np.random.rand()))
+                x, y = self.get_next_train_batch()
+                self.optimizer.zero_grad()
+                output = self.model(x)
+                output = self.nas_competetive_output(output)
+                loss = self.loss(output, y)
+                loss.backward()
+                self.optimizer.step()
 
         # self.model.cpu()
 
@@ -109,6 +114,7 @@ class clientFomo(Client):
             x = x.to(self.device)
             y = y.to(self.device)
             output = new_model(x)
+            output = self.nas_competetive_output(output)
             loss = self.loss(output, y)
             L += loss
         

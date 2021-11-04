@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 from flcore.optimizers.fedoptimizer import pFedMeOptimizer
 from flcore.clients.clientbase import Client
+from flcore.optimizers.fedoptimizer import CosineAnnealingLR, OrCosineAnnealingLR
 
 
 class clientpFedMe(Client):
@@ -12,7 +13,6 @@ class clientpFedMe(Client):
                  local_steps, lamda, K, personalized_learning_rate):
         super().__init__(device, numeric_id, train_slow, send_slow, train_data, test_data, model, batch_size, learning_rate,
                          local_steps)
-
         self.lamda = lamda
         self.K = K
         self.personalized_learning_rate = personalized_learning_rate
@@ -24,6 +24,7 @@ class clientpFedMe(Client):
         self.loss = nn.CrossEntropyLoss()
         self.optimizer = pFedMeOptimizer(
             self.model.parameters(), lr=self.personalized_learning_rate, lamda=self.lamda)
+        self.scheduler = OrCosineAnnealingLR(self.optimizer, 5, 100, 95, 1e-4)
 
     def train(self):
         start_time = time.time()
@@ -37,22 +38,14 @@ class clientpFedMe(Client):
 
         for step in range(max_local_steps):  # local update
             for i, (x, y) in enumerate(self.trainloader):
+                self.scheduler.update(None, 1.0 * i / len(self.trainloader))
                 x = x.to(self.device)
                 y = y.to(self.device)
                 # K is number of personalized steps
                 for i in range(self.K):
                     self.optimizer.zero_grad()
                     output = self.model(x)
-                    if isinstance(output, tuple):
-                        output = output[1]
-
-                    if isinstance(output, list):
-                        assert len(output) == 2, "output must has {:} items instead of {:}".format(
-                            2, len(output)
-                        )
-                        output, output_aux = output
-                    else:
-                        output, output_aux = output, None
+                    output = self.nas_competetive_output(output)
                     loss = self.loss(output, y)
                     loss.backward()
                     # finding aproximate theta

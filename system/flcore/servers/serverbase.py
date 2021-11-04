@@ -226,7 +226,8 @@ class Server(object):
 
 
     def print_(self, test_acc, train_acc, train_loss, personalized_acc):
-        print("Average Personalized Test Accurancy: {:.4f}".format(personalized_acc))
+        if personalized_acc:
+            print("Average Personalized Test Accurancy: {:.4f}".format(personalized_acc))
         print("Global Test Accurancy: {:.4f}".format(test_acc))
         print("Average Train Accurancy: {:.4f}".format(train_acc))
         print("Average Train Loss: {:.4f}".format(train_loss))

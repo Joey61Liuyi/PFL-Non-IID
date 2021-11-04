@@ -85,15 +85,18 @@ class pFedMe(Server):
             if i%self.eval_gap == 0:
                 print(f"\n-------------Round number: {i}-------------")
                 print("\nEvaluate global model")
-                test_acc, train_acc, train_loss = self.evaluate()
+                test_acc, train_acc, train_loss, personalized_acc = self.evaluate(i)
                 info_dict = {
-                    "average_valid_top1_acc": test_acc,
+                    "learning_rate": self.clients[0].optimizer.state_dict()['param_groups'][0]['lr'],
+                    "global_valid_top1_acc": test_acc * 100,
+                    "average_valid_top1_acc": personalized_acc * 100,
                     "epoch": i
                 }
-                # wandb.log(info_dict)
+                wandb.log(info_dict)
 
-            self.selected_clients = self.select_clients()
+            self.selected_clients = self.clients
             for client in self.selected_clients:
+                client.scheduler.update(i, 0.0)
                 client.train()
 
             # threads = [Thread(target=client.train)
@@ -101,9 +104,9 @@ class pFedMe(Server):
             # [t.start() for t in threads]
             # [t.join() for t in threads]
 
-            if i%self.eval_gap == 0:
-                print("\nEvaluate personalized model")
-                self.evaluate_personalized_model()
+            # if i%self.eval_gap == 0:
+            #     print("\nEvaluate personalized model")
+            #     self.evaluate_personalized_model()
 
             self.previous_global_model = copy.deepcopy(list(self.global_model.parameters()))
             self.receive_models()
@@ -164,7 +167,7 @@ class pFedMe(Server):
         self.rs_test_acc_per.append(test_acc)
         self.rs_train_acc_per.append(train_acc)
         self.rs_train_loss_per.append(train_loss)
-        self.print_(test_acc, train_acc, train_loss)
+        self.print_(test_acc, train_acc, train_loss, None)
 
     def save_results(self):
         algo = self.dataset + "_" + self.algorithm
