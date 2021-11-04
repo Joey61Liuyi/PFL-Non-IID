@@ -281,5 +281,8 @@ class PerturbedGradientDescent(Optimizer):
         for group in self.param_groups:
             for p, g in zip(group['params'], global_params):
                 g = g.to(device)
-                d_p = p.grad.data + group['mu'] * (p.data - g.data)
+                if p.grad != None:
+                    d_p = p.grad.data + group['mu'] * (p.data - g.data)
+                else:
+                    d_p = group['mu'] * (p.data - g.data)
                 p.data.add_(d_p, alpha=-group['lr'])

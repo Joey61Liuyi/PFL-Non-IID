@@ -5,6 +5,7 @@ import copy
 import torch.nn as nn
 from flcore.optimizers.fedoptimizer import PerturbedGradientDescent
 from flcore.clients.clientbase import Client
+from flcore.optimizers.fedoptimizer import CosineAnnealingLR, OrCosineAnnealingLR
 
 
 class clientProx(Client):
@@ -20,6 +21,7 @@ class clientProx(Client):
         self.loss = nn.CrossEntropyLoss()
         self.optimizer = PerturbedGradientDescent(
             self.model.parameters(), lr=self.learning_rate, mu=self.mu)
+        self.scheduler = OrCosineAnnealingLR(self.optimizer, 5, 100, 95, 1e-4)
 
     def train(self):
         start_time = time.time()
@@ -34,12 +36,18 @@ class clientProx(Client):
         for step in range(max_local_steps):
             if self.train_slow:
                 time.sleep(0.1 * np.abs(np.random.rand()))
-            x, y = self.get_next_train_batch()
-            self.optimizer.zero_grad()
-            output = self.model(x)
-            loss = self.loss(output, y)
-            loss.backward()
-            self.optimizer.step(self.global_params, self.device)
+
+            for i, (x, y) in enumerate(self.trainloader):
+                # x, y = self.get_next_train_batch()
+                self.scheduler.update(None, 1.0 * i / len(self.trainloader))
+                self.optimizer.zero_grad()
+                x = x.to(self.device)
+                y = y.to(self.device)
+                output = self.model(x)
+                output = self.nas_competetive_output(output)
+                loss = self.loss(output, y)
+                loss.backward()
+                self.optimizer.step(self.global_params, self.device)
 
         # self.model.cpu()
 

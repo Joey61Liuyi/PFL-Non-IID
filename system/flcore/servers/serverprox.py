@@ -2,7 +2,7 @@ from flcore.clients.clientprox import clientProx
 from flcore.servers.serverbase import Server
 from utils.data_utils import read_client_data
 from threading import Thread
-
+import wandb
 
 class FedProx(Server):
     def __init__(self, device, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
@@ -15,11 +15,12 @@ class FedProx(Server):
         self.set_slow_clients()
         
         for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
-            train, test = read_client_data(dataset, i)
-            client = clientProx(device, i, train_slow, send_slow, train, test, model, batch_size,
+            # train, test = read_client_data(dataset, i)
+            client = clientProx(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size,
                            learning_rate, local_steps, mu)
             self.clients.append(client)
-
+        del (self.train_all)
+        del (self.test_all)
         print(f"\nJoin clients / total clients: {self.join_clients} / {self.num_clients}")
         print("Finished creating server and clients.")
 
@@ -30,10 +31,19 @@ class FedProx(Server):
             if i%self.eval_gap == 0:
                 print(f"\n-------------Round number: {i}-------------")
                 print("\nEvaluate global model")
-                self.evaluate()
+                test_acc, train_acc, train_loss, personalized_acc = self.evaluate(i)
+                info_dict = {
+                    "learning_rate": self.clients[0].optimizer.state_dict()['param_groups'][0]['lr'],
+                    "global_valid_top1_acc": test_acc * 100,
+                    "average_valid_top1_acc": personalized_acc * 100,
+                    "epoch": i
+                }
+                # print(info_dict)
+                wandb.log(info_dict)
 
-            self.selected_clients = self.select_clients()
+            self.selected_clients = self.clients
             for client in self.selected_clients:
+                client.scheduler.update(i, 0.0)
                 client.train()
 
             # threads = [Thread(target=client.train)
@@ -45,7 +55,7 @@ class FedProx(Server):
             self.aggregate_parameters()
 
         print("\nBest global results.")
-        self.print_(max(self.rs_test_acc), max(self.rs_train_acc), min(self.rs_train_loss))
+        self.print_(max(self.rs_test_acc), max(self.rs_train_acc), min(self.rs_train_loss), personalized_acc)
 
         self.save_results()
         self.save_global_model()

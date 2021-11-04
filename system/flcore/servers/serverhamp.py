@@ -7,6 +7,7 @@ import copy
 import time
 import numpy as np
 import math
+import wandb
 
 
 class HeurFedAMP(Server):
@@ -29,10 +30,12 @@ class HeurFedAMP(Server):
         self.client_us = [model for i in range(num_clients)]
 
         for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
-            train, test = read_client_data(dataset, i)
-            client = clientAMP(device, i, train_slow, send_slow, train, test, model, batch_size, learning_rate, 
+            # train, test = read_client_data(dataset, i)
+            client = clientAMP(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size, learning_rate,
                                 local_steps, alphaK, lamda)
             self.clients.append(client)
+        del (self.train_all)
+        del (self.test_all)
 
         print(f"\nJoin clients / total clients: {self.join_clients} / {self.num_clients}")
         print("Finished creating server and clients.")
@@ -44,9 +47,18 @@ class HeurFedAMP(Server):
             if i%self.eval_gap == 0:
                 print(f"\n-------------Round number: {i}-------------")
                 print("\nEvaluate global model")
-                self.evaluate()
+                test_acc, train_acc, train_loss, personalized_acc = self.evaluate(i)
+                info_dict = {
+                    "learning_rate": self.clients[0].optimizer.state_dict()['param_groups'][0]['lr'],
+                    "global_valid_top1_acc": test_acc * 100,
+                    "average_valid_top1_acc": personalized_acc * 100,
+                    "epoch": i
+                }
+                # print(info_dict)
+                wandb.log(info_dict)
 
             for client in self.clients:
+                client.scheduler.update(i, 0.0)
                 client.train()
 
             # threads = [Thread(target=client.train)
@@ -59,7 +71,7 @@ class HeurFedAMP(Server):
 
         print("\nBest global results.")
         self.print_(max(self.rs_test_acc), max(
-            self.rs_train_acc), min(self.rs_train_loss))
+            self.rs_train_acc), min(self.rs_train_loss), personalized_acc)
 
         self.save_results()
         self.save_global_model()

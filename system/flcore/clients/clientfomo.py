@@ -53,7 +53,8 @@ class clientFomo(Client):
                 self.scheduler.update(None, 1.0 * i / len(self.trainloader))
                 if self.train_slow:
                     time.sleep(0.1 * np.abs(np.random.rand()))
-                x, y = self.get_next_train_batch()
+                x = x.to(self.device)
+                y = y.to(self.device)
                 self.optimizer.zero_grad()
                 output = self.model(x)
                 output = self.nas_competetive_output(output)

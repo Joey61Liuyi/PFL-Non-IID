@@ -25,11 +25,12 @@ class FedFomo(Server):
         self.M = min(M, join_clients)
 
         for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
-            train, test = read_client_data(dataset, i)
-            client = clientFomo(device, i, train_slow, send_slow, train, 
-                               test, model, batch_size, learning_rate, local_steps, num_clients)
+            # train, test = read_client_data(dataset, i)
+            client = clientFomo(device, i, train_slow, send_slow, self.train_all[i],
+                               self.test_all[i], model, batch_size, learning_rate, local_steps, num_clients)
             self.clients.append(client)
-            
+        del (self.train_all)
+        del (self.test_all)
         print(f"\nJoin clients / total clients: {self.join_clients} / {self.num_clients}")
         print("Finished creating server and clients.")
 
@@ -63,7 +64,7 @@ class FedFomo(Server):
 
         print("\nBest global results.")
         self.print_(max(self.rs_test_acc), max(
-            self.rs_train_acc), min(self.rs_train_loss))
+            self.rs_train_acc), min(self.rs_train_loss), personalized_acc)
 
         self.save_results()
         self.save_global_model()

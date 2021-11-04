@@ -16,53 +16,12 @@ class FedAvg(Server):
                          time_threthold)
         # select slow clients
         self.set_slow_clients()
-        if dataset == "Cifar10":
-            mean = [x / 255 for x in [125.3, 123.0, 113.9]]
-            std = [x / 255 for x in [63.0, 62.1, 66.7]]
-            lists = [
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomCrop(32, padding=4),
-                transforms.ToTensor(),
-                transforms.Normalize(mean, std),
-            ]
-
-            train_transform = transforms.Compose(lists)
-            test_transform = transforms.Compose(
-                [transforms.ToTensor(), transforms.Normalize(mean, std)]
-            )
-            xshape = (1, 3, 32, 32)
-            train_set = torchvision.datasets.CIFAR10(
-                "../dataset/Cifar10/rawdata", train=True, transform=train_transform, download=True
-            )
-            test_set = torchvision.datasets.CIFAR10(
-                "../dataset/Cifar10/rawdata", train=False, transform=test_transform, download=True
-            )
-
-            trainloader = torch.utils.data.DataLoader(train_set, batch_size=len(train_set.data), shuffle=False)
-            testloader = torch.utils.data.DataLoader(test_set, batch_size=len(test_set.data), shuffle=False)
-            for _, train_data in enumerate(trainloader, 0):
-                train_set.data, train_set.targets = train_data
-            for _, train_data in enumerate(testloader, 0):
-                test_set.data, test_set.targets = train_data
-
-        user_data = np.load('./Dirichlet_0.5_Use_valid_False_{}_non_iid_setting.npy'.format(dataset),
-                            allow_pickle=True).item()
-        train_all = []
         for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
-
-            train_index = user_data[i]["train"] + user_data[i]["test"]
-            test_index = user_data[i]["valid"]
-            train = []
-            test = []
-            for index in train_index:
-                train.append((train_set.data[index], train_set.targets[index]))
-            for index in test_index:
-                test.append((test_set.data[index], test_set.targets[index]))
-
             # train, test = read_client_data(dataset, i)
-            client = clientAVG(device, i, train_slow, send_slow, train, test, model, batch_size, learning_rate, local_steps)
+            client = clientAVG(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size, learning_rate, local_steps)
             self.clients.append(client)
-            train_all.append(train)
+        del(self.train_all)
+        del(self.test_all)
 
         print(f"\nJoin clients / total clients: {self.join_clients} / {self.num_clients}")
         print("Finished creating server and clients.")

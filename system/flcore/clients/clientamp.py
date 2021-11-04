@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from flcore.clients.clientbase import Client
 import numpy as np
+from flcore.optimizers.fedoptimizer import CosineAnnealingLR, OrCosineAnnealingLR
 import time
 import copy
 
@@ -17,6 +18,7 @@ class clientAMP(Client):
 
         self.loss = nn.CrossEntropyLoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
+        self.scheduler = OrCosineAnnealingLR(self.optimizer, 5, 100, 95, 1e-4)
 
     def train(self):
         start_time = time.time()
@@ -31,18 +33,23 @@ class clientAMP(Client):
         for step in range(max_local_steps):
             if self.train_slow:
                 time.sleep(0.1 * np.abs(np.random.rand()))
-            x, y = self.get_next_train_batch()
-            self.optimizer.zero_grad()
-            output = self.model(x)
-            loss = self.loss(output, y)
 
-            params = weight_flatten(self.model)
-            params_ = weight_flatten(self.client_u)
-            sub = params - params_
-            loss += self.lamda/self.alphaK/2 * torch.dot(sub, sub)
+            for i, (x, y) in enumerate(self.trainloader):
+                self.scheduler.update(None, 1.0*i/len(self.trainloader))
+                self.optimizer.zero_grad()
+                x = x.to(self.device)
+                y = y.to(self.device)
+                output = self.model(x)
+                output = self.nas_competetive_output(output)
+                loss = self.loss(output, y)
 
-            loss.backward()
-            self.optimizer.step()
+                params = weight_flatten(self.model)
+                params_ = weight_flatten(self.client_u)
+                sub = params - params_
+                loss += self.lamda/self.alphaK/2 * torch.dot(sub, sub)
+
+                loss.backward()
+                self.optimizer.step()
 
         # self.model.cpu()
 
