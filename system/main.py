@@ -195,10 +195,10 @@ if __name__ == "__main__":
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
     parser.add_argument('-m', "--model", type=str, default="DARTS")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=96)
-    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.025,
+    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.01,
                         help="Local learning rate")
-    parser.add_argument('-gr', "--global_rounds", type=int, default=120)
-    parser.add_argument('-ls', "--local_steps", type=int, default=1)
+    parser.add_argument('-gr', "--global_rounds", type=int, default=1000)
+    parser.add_argument('-ls', "--local_steps", type=int, default=20)
     parser.add_argument('-algo', "--algorithm", type=str, default="FedProx",
                         choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \
                         "FedFomo", "MOCHA", "FedPlayer", "FedAMP", "HeurFedAMP"])
@@ -332,55 +332,57 @@ if __name__ == "__main__":
     print(genotype_list)
     model_owner = 0
 
-    if config.model in Networks:
-        genotype = Networks[config.model]
-        run_name = "{}-{}-{}".format(config.model, config.algorithm, config.dataset)
-    else:
-        if model_owner!=None:
-            genotype = genotype_list[model_owner]
-            run_name = "{}-{}-{}-{}".format(config.model, model_owner, config.algorithm, config.dataset)
+    algorithm_list = ["FedAvg"]
+    for algorithm in algorithm_list:
+        if config.model in Networks:
+            genotype = Networks[config.model]
+            run_name = "{}-{}-{}".format(config.model, algorithm, config.dataset)
         else:
-            genotype = None
-
-    seed = 666
-    prepare_seed(seed)
-    wandb_project = "Trial_New"
-    # run_name = "{}-{}-{}-{}".format(config.model, config.algorithm, config.dataset, config.local_learning_rate)
-    resume_str = None
-    wandb.init(project=wandb_project, name=run_name, resume=resume_str)
-    run(
-        goal=config.goal,
-        dataset=config.dataset,
-        num_labels=config.num_labels,
-        device=config.device,
-        algorithm=config.algorithm,
-        model=config.model,
-        local_batch_size=config.local_batch_size,
-        local_learning_rate=config.local_learning_rate,
-        global_rounds=config.global_rounds,
-        local_steps=config.local_steps,
-        join_clients=config.join_clients,
-        num_clients=config.num_clients,
-        beta=config.beta,
-        lamda=config.lamda,
-        K=config.K,
-        p_learning_rate=config.p_learning_rate,
-        times=config.times,
-        eval_gap=config.eval_gap,
-        client_drop_rate=config.client_drop_rate,
-        train_slow_rate=config.train_slow_rate,
-        send_slow_rate=config.send_slow_rate,
-        time_select=config.time_select,
-        time_threthold=config.time_threthold,
-        M = config.M,
-        mu=config.mu,
-        itk=config.itk,
-        alphaK=config.alphaK,
-        sigma=config.sigma,
-        xi=config.xi,
-        genotype=genotype
-    )
-    wandb.finish()
+            if model_owner != None:
+                genotype = genotype_list[model_owner]
+                run_name = "{}-{}-{}-{}".format(config.model, model_owner, algorithm, config.dataset)
+            else:
+                genotype = None
+        seed = 666
+        prepare_seed(seed)
+        wandb_project = "Trial_New"
+        resume_str = None
+        wandb.init(project=wandb_project, name=run_name, resume=resume_str)
+        try:
+            run(
+                goal=config.goal,
+                dataset=config.dataset,
+                num_labels=config.num_labels,
+                device=config.device,
+                algorithm=algorithm,
+                model=config.model,
+                local_batch_size=config.local_batch_size,
+                local_learning_rate=config.local_learning_rate,
+                global_rounds=config.global_rounds,
+                local_steps=config.local_steps,
+                join_clients=config.join_clients,
+                num_clients=config.num_clients,
+                beta=config.beta,
+                lamda=config.lamda,
+                K=config.K,
+                p_learning_rate=config.p_learning_rate,
+                times=config.times,
+                eval_gap=config.eval_gap,
+                client_drop_rate=config.client_drop_rate,
+                train_slow_rate=config.train_slow_rate,
+                send_slow_rate=config.send_slow_rate,
+                time_select=config.time_select,
+                time_threthold=config.time_threthold,
+                M = config.M,
+                mu=config.mu,
+                itk=config.itk,
+                alphaK=config.alphaK,
+                sigma=config.sigma,
+                xi=config.xi,
+                genotype=genotype
+            )
+        except:
+            wandb.finish()
 
 
         # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))

@@ -44,7 +44,7 @@ class FedAvg(Server):
                 wandb.log(info_dict)
             self.selected_clients = self.clients
             for client in self.clients:
-                client.scheduler.update(i, 0.0)
+                # client.scheduler.update(i, 0.0)
                 client.train()
 
             # threads = [Thread(target=client.train)
