@@ -52,7 +52,7 @@ class FedFomo(Server):
                 wandb.log(info_dict)
             self.selected_clients = self.select_clients()
             for client in self.selected_clients:
-                client.scheduler.update(i, 0.0)
+                # client.scheduler.update(i, 0.0)
                 client.train()
 
             # threads = [Thread(target=client.train)

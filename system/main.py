@@ -193,8 +193,8 @@ if __name__ == "__main__":
                         choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", \
                         "sogounews"])
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
-    parser.add_argument('-m', "--model", type=str, default="DARTS")
-    parser.add_argument('-lbs', "--local_batch_size", type=int, default=96)
+    parser.add_argument('-m', "--model", type=str, default="cnn")
+    parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
     parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.01,
                         help="Local learning rate")
     parser.add_argument('-gr', "--global_rounds", type=int, default=1000)
@@ -228,7 +228,7 @@ if __name__ == "__main__":
                         help="Regularization weight for pFedMe and FedAMP")
     parser.add_argument('-mu', "--mu", type=float, default=0,
                         help="Proximal rate for FedProx")
-    parser.add_argument('-K', "--K", type=int, default=1,
+    parser.add_argument('-K', "--K", type=int, default=5,
                         help="Number of personalized training steps for pFedMe")
     parser.add_argument('-lrp', "--p_learning_rate", type=float, default=0.01,
                         help="personalized learning rate to caculate theta aproximately using K steps")

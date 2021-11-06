@@ -43,7 +43,7 @@ class FedProx(Server):
 
             self.selected_clients = self.clients
             for client in self.selected_clients:
-                client.scheduler.update(i, 0.0)
+                # client.scheduler.update(i, 0.0)
                 client.train()
 
             # threads = [Thread(target=client.train)

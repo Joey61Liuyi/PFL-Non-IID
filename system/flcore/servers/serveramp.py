@@ -54,7 +54,7 @@ class FedAMP(Server):
                 # print(info_dict)
                 wandb.log(info_dict)
             for client in self.clients:
-                client.scheduler.update(i, 0.0)
+                # client.scheduler.update(i, 0.0)
                 client.train()
 
             # threads = [Thread(target=client.train)
