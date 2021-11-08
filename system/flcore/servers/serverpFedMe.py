@@ -83,7 +83,8 @@ class pFedMe(Server):
             self.rs_train_acc_per), min(self.rs_train_loss_per))
 
         self.save_results()
-        self.save_global_model()
+        if i % 100 == 0:
+            self.save_global_model_middle(i)
 
 
     def beta_aggregate_parameters(self):

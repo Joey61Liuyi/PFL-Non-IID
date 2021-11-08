@@ -52,7 +52,8 @@ class PerAvg(Server):
             self.rs_train_acc), min(self.rs_train_loss))
 
         self.save_results()
-        self.save_global_model()
+        if i % 100 == 0:
+            self.save_global_model_middle(i)
 
 
     def evaluate_one_step(self):
