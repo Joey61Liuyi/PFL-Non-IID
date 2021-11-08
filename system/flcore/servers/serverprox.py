@@ -26,10 +26,15 @@ class FedProx(Server):
 
     def train(self):
         for i in range(self.global_rounds+1):
+            print(f"\n-------------Round number: {i}-------------")
             self.send_models()
-
-            if i%self.eval_gap == 0:
-                print(f"\n-------------Round number: {i}-------------")
+            if i<self.global_rounds/2:
+                eval_gap = 50
+            elif i< self.global_rounds*9/10 and i>=self.global_rounds/2:
+                eval_gap = 20
+            else:
+                eval_gap = 1
+            if i%eval_gap == 0:
                 print("\nEvaluate global model")
                 test_acc, train_acc, train_loss, personalized_acc = self.evaluate(i)
                 info_dict = {

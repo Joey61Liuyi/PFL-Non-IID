@@ -28,7 +28,6 @@ class PerAvg(Server):
         for i in range(self.global_rounds+1):
             # send all parameter for clients
             self.send_models()
-
             if i%self.eval_gap == 0:
                 print(f"\n-------------Round number: {i}-------------")
                 print("\nEvaluate global model with one step update")
