@@ -7,7 +7,7 @@ import wandb
 class FedProx(Server):
     def __init__(self, device, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                  num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, time_threthold, 
-                 mu):
+                 mu, run_name):
         super().__init__(dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                          num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, 
                          time_threthold)
@@ -17,7 +17,7 @@ class FedProx(Server):
         for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
             # train, test = read_client_data(dataset, i)
             client = clientProx(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size,
-                           learning_rate, local_steps, mu)
+                           learning_rate, local_steps, mu, run_name)
             self.clients.append(client)
         del (self.train_all)
         del (self.test_all)

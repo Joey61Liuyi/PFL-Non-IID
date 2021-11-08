@@ -43,7 +43,7 @@ def prepare_seed(rand_seed):
 
 def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, local_learning_rate, global_rounds, local_steps, join_clients, 
         num_clients, beta, lamda, K, p_learning_rate, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, 
-        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi, genotype):
+        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi, genotype, run_name):
 
     time_list = []
     reporter = MemReporter()
@@ -123,46 +123,46 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
         if algorithm == "FedAvg":
             server = FedAvg(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
-                            send_slow_rate, time_select, goal, time_threthold)
+                            send_slow_rate, time_select, goal, time_threthold, run_name)
 
         elif algorithm == "PerAvg":
             server = PerAvg(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
-                            send_slow_rate, time_select, goal, time_threthold, beta)
+                            send_slow_rate, time_select, goal, time_threthold, beta, run_name)
 
         elif algorithm == "pFedMe":
             server = pFedMe(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
-                            send_slow_rate, time_select, goal, time_threthold, beta, lamda, K, p_learning_rate)
+                            send_slow_rate, time_select, goal, time_threthold, beta, lamda, K, p_learning_rate, run_name)
 
         elif algorithm == "FedProx":
             server = FedProx(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
-                            send_slow_rate, time_select, goal, time_threthold, mu)
+                            send_slow_rate, time_select, goal, time_threthold, mu, run_name)
 
         elif algorithm == "FedFomo":
             server = FedFomo(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
-                            send_slow_rate, time_select, goal, time_threthold, M)
+                            send_slow_rate, time_select, goal, time_threthold, M, run_name)
 
         elif algorithm == "MOCHA":
             server = MOCHA(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
-                            send_slow_rate, time_select, goal, time_threthold, itk)
+                            send_slow_rate, time_select, goal, time_threthold, itk, run_name)
 
         elif algorithm == "FedAMP":
             server = FedAMP(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
-                            send_slow_rate, time_select, goal, time_threthold, alphaK, lamda, sigma)
+                            send_slow_rate, time_select, goal, time_threthold, alphaK, lamda, sigma, run_name)
         
         elif algorithm == "HeurFedAMP":
             server = HeurFedAMP(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
-                            send_slow_rate, time_select, goal, time_threthold, alphaK, lamda, sigma, xi)
+                            send_slow_rate, time_select, goal, time_threthold, alphaK, lamda, sigma, xi, run_name)
         elif algorithm == "Local":
             server = Local_server(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate,
-                            send_slow_rate, time_select, goal, time_threthold)
+                            send_slow_rate, time_select, goal, time_threthold, run_name)
         del(model)
         server.train()
 
@@ -339,7 +339,7 @@ if __name__ == "__main__":
     # model_owner = 0
 
     # algorithm = "Local"
-    algorithm_list = ["FedAMP", "HeurFedAMP", "pFedMe", "FedProx"]
+    algorithm_list = ["FedAvg"]
     config.model = "DARTS"
     for algorithm in algorithm_list:
         config.algorithm = algorithm
@@ -417,7 +417,8 @@ if __name__ == "__main__":
                 alphaK=config.alphaK,
                 sigma=config.sigma,
                 xi=config.xi,
-                genotype=genotype
+                genotype=genotype,
+                run_name = run_name,
             )
         except:
             wandb.finish()

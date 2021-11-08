@@ -10,10 +10,10 @@ import numpy as np
 
 class FedAvg(Server):
     def __init__(self, device, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
-                 num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, time_threthold):
+                 num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, time_threthold, run_name):
         super().__init__(dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                          num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, 
-                         time_threthold)
+                         time_threthold, run_name)
         # select slow clients
         self.set_slow_clients()
         for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
@@ -54,7 +54,8 @@ class FedAvg(Server):
 
             self.receive_models()
             self.aggregate_parameters()
-            self.save_global_model_middle(i)
+            if i % 100 == 0:
+                self.save_global_model_middle(i)
 
         print("\nBest global results.")
         self.print_(max(self.rs_test_acc), max(

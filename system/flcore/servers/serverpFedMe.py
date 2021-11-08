@@ -16,10 +16,10 @@ import wandb
 class pFedMe(Server):
     def __init__(self, device, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                  num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, time_threthold, 
-                 beta, lamda, K, personalized_learning_rate):
+                 beta, lamda, K, personalized_learning_rate, run_name):
         super().__init__(dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                          num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, 
-                         time_threthold)
+                         time_threthold, run_name)
         self.beta = beta
         self.rs_train_acc_per = []
         self.rs_train_loss_per = []

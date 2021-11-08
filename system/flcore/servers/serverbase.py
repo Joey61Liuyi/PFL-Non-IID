@@ -13,7 +13,7 @@ import torchvision
 class Server(object):
     def __init__(self, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                  num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, 
-                 time_threthold):
+                 time_threthold, run_name):
         # Set up the main attributes
         self.dataset = dataset
         self.global_rounds = global_rounds
@@ -46,6 +46,7 @@ class Server(object):
         self.client_drop_rate = client_drop_rate
         self.train_slow_rate = train_slow_rate
         self.send_slow_rate = send_slow_rate
+        self.run_name = run_name
 
         if dataset == "Cifar10":
             mean = [x / 255 for x in [125.3, 123.0, 113.9]]
@@ -204,7 +205,7 @@ class Server(object):
             "epoch": epoch,
             "model_dict": self.global_model.state_dict()
         }
-        torch.save(checkpoint_dict, os.path.join(model_path, self.algorithm + "_server" + ".pth"))
+        torch.save(checkpoint_dict, os.path.join(model_path, self.run_name + ".pth"))
 
     # def load_model(self):
     #     model_path = os.path.join("models", self.dataset, "server" + ".pt")

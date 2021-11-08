@@ -13,10 +13,10 @@ import wandb
 class FedAMP(Server):
     def __init__(self, device, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                  num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, time_threthold, 
-                 alphaK, lamda, sigma):
+                 alphaK, lamda, sigma, run_name):
         super().__init__(dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                          num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, 
-                         time_threthold)
+                         time_threthold, run_name)
         # select slow clients
         self.set_slow_clients()
 
