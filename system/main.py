@@ -182,74 +182,7 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
 
     reporter.report()
 
-
-if __name__ == "__main__":
-    total_start = time.time()
-
-    parser = argparse.ArgumentParser()
-    # general
-    parser.add_argument('-go', "--goal", type=str, default="test", 
-                        help="The goal for this experiment")
-    parser.add_argument('-dev', "--device", type=str, default="cuda",
-                        choices=["cpu", "cuda"])
-    parser.add_argument('-did', "--device_id", type=str, default="0")
-    parser.add_argument('-data', "--dataset", type=str, default="Cifar10",
-                        choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", \
-                        "sogounews"])
-    parser.add_argument('-nb', "--num_labels", type=int, default=10)
-    parser.add_argument('-m', "--model", type=str, default="Searched")
-    parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
-    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.01,
-                        help="Local learning rate")
-    parser.add_argument('-gr', "--global_rounds", type=int, default=1000)
-    parser.add_argument('-ls', "--local_steps", type=int, default=20)
-    parser.add_argument('-algo', "--algorithm", type=str, default="Local",
-                        choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \
-                        "FedFomo", "MOCHA", "FedPlayer", "FedAMP", "HeurFedAMP"])
-    parser.add_argument('-jc', "--join_clients", type=int, default=5,
-                        help="Number of clients per round")
-    parser.add_argument('-nc', "--num_clients", type=int, default=5,
-                        help="Total number of clients")
-    parser.add_argument('-t', "--times", type=int, default=1,
-                        help="Running times")
-    parser.add_argument('-eg', "--eval_gap", type=int, default=1,
-                        help="Rounds gap for evaluation")
-    # practical
-    parser.add_argument('-cdr', "--client_drop_rate", type=float, default=0.0,
-                        help="Dropout rate for clients")
-    parser.add_argument('-tsr', "--train_slow_rate", type=float, default=0.0,
-                        help="The rate for slow clients when training locally")
-    parser.add_argument('-ssr', "--send_slow_rate", type=float, default=0.0,
-                        help="The rate for slow clients when sending global model")
-    parser.add_argument('-ts', "--time_select", type=bool, default=False,
-                        help="Whether to group and select clients at each round according to time cost")
-    parser.add_argument('-tth', "--time_threthold", type=float, default=float("inf"),
-                        help="The threthold for droping slow clients")
-    # pFedMe / PerAvg / FedProx / FedAMP / HeurFedAMP
-    parser.add_argument('-bt', "--beta", type=float, default=0.0,
-                        help="Average moving parameter for pFedMe, Second learning rate of Per-FedAvg")
-    parser.add_argument('-lam', "--lamda", type=float, default=15,
-                        help="Regularization weight for pFedMe and FedAMP")
-    parser.add_argument('-mu', "--mu", type=float, default=0,
-                        help="Proximal rate for FedProx")
-    parser.add_argument('-K', "--K", type=int, default=5,
-                        help="Number of personalized training steps for pFedMe")
-    parser.add_argument('-lrp', "--p_learning_rate", type=float, default=0.01,
-                        help="personalized learning rate to caculate theta aproximately using K steps")
-    # FedFomo
-    parser.add_argument('-M', "--M", type=int, default=5,
-                        help="Server only sends M client models to one client at each round")
-    # MOCHA
-    parser.add_argument('-itk', "--itk", type=int, default=4000,
-                        help="The iterations for solving quadratic subproblems")
-    # FedAMP
-    parser.add_argument('-alk', "--alphaK", type=float, default=1.0, 
-                        help="lambda/sqrt(GLOABL-ITRATION) according to the paper")
-    parser.add_argument('-sg', "--sigma", type=float, default=1.0)
-    # HeurFedAMP
-    parser.add_argument('-xi', "--xi", type=float, default=1.0)
-
-    config = parser.parse_args()
+def print_info(config):
 
     os.environ["CUDA_VISIBLE_DEVICES"] = config.device_id
 
@@ -301,6 +234,75 @@ if __name__ == "__main__":
 
     print("=" * 50)
 
+
+if __name__ == "__main__":
+    total_start = time.time()
+
+    parser = argparse.ArgumentParser()
+    # general
+    parser.add_argument('-go', "--goal", type=str, default="test",
+                        help="The goal for this experiment")
+    parser.add_argument('-dev', "--device", type=str, default="cuda",
+                        choices=["cpu", "cuda"])
+    parser.add_argument('-did', "--device_id", type=str, default="0")
+    parser.add_argument('-data', "--dataset", type=str, default="Cifar10",
+                        choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", \
+                                 "sogounews"])
+    parser.add_argument('-nb', "--num_labels", type=int, default=10)
+    # parser.add_argument('-m', "--model", type=str, default="cnn")
+    parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
+    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.005,
+                        help="Local learning rate")
+    parser.add_argument('-gr', "--global_rounds", type=int, default=1000)
+    parser.add_argument('-ls', "--local_steps", type=int, default=20)
+    parser.add_argument('-algo', "--algorithm", type=str, default="FedAvg",
+                        choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \
+                                 "FedFomo", "MOCHA", "FedPlayer", "FedAMP", "HeurFedAMP"])
+    parser.add_argument('-jc', "--join_clients", type=int, default=5,
+                        help="Number of clients per round")
+    parser.add_argument('-nc', "--num_clients", type=int, default=5,
+                        help="Total number of clients")
+    parser.add_argument('-t', "--times", type=int, default=1,
+                        help="Running times")
+    parser.add_argument('-eg', "--eval_gap", type=int, default=1,
+                        help="Rounds gap for evaluation")
+    # practical
+    parser.add_argument('-cdr', "--client_drop_rate", type=float, default=0.0,
+                        help="Dropout rate for clients")
+    parser.add_argument('-tsr', "--train_slow_rate", type=float, default=0.0,
+                        help="The rate for slow clients when training locally")
+    parser.add_argument('-ssr', "--send_slow_rate", type=float, default=0.0,
+                        help="The rate for slow clients when sending global model")
+    parser.add_argument('-ts', "--time_select", type=bool, default=False,
+                        help="Whether to group and select clients at each round according to time cost")
+    parser.add_argument('-tth', "--time_threthold", type=float, default=float("inf"),
+                        help="The threthold for droping slow clients")
+    # pFedMe / PerAvg / FedProx / FedAMP / HeurFedAMP
+    parser.add_argument('-bt', "--beta", type=float, default=0.0,
+                        help="Average moving parameter for pFedMe, Second learning rate of Per-FedAvg")
+    parser.add_argument('-lam', "--lamda", type=float, default=15,
+                        help="Regularization weight for pFedMe and FedAMP")
+    parser.add_argument('-mu', "--mu", type=float, default=0,
+                        help="Proximal rate for FedProx")
+    parser.add_argument('-K', "--K", type=int, default=5,
+                        help="Number of personalized training steps for pFedMe")
+    parser.add_argument('-lrp', "--p_learning_rate", type=float, default=0.01,
+                        help="personalized learning rate to caculate theta aproximately using K steps")
+    # FedFomo
+    parser.add_argument('-M', "--M", type=int, default=5,
+                        help="Server only sends M client models to one client at each round")
+    # MOCHA
+    parser.add_argument('-itk', "--itk", type=int, default=4000,
+                        help="The iterations for solving quadratic subproblems")
+    # FedAMP
+    parser.add_argument('-alk', "--alphaK", type=float, default=1.0,
+                        help="lambda/sqrt(GLOABL-ITRATION) according to the paper")
+    parser.add_argument('-sg', "--sigma", type=float, default=1.0)
+    # HeurFedAMP
+    parser.add_argument('-xi', "--xi", type=float, default=1.0)
+
+    config = parser.parse_args()
+
     # with torch.profiler.profile(
     #     activities=[
     #         torch.profiler.ProfilerActivity.CPU,
@@ -336,9 +338,10 @@ if __name__ == "__main__":
     print(genotype_list)
     # model_owner = 0
 
-    algorithm = "Local"
-    # algorithm_list = ["pFedMe"]
-    for model_owner in range(5):
+    # algorithm = "Local"
+    algorithm_list = ["FedAMP", "HeurFedAMP", "pFedMe", "FedProx"]
+    config.model = "DARTS"
+    for algorithm in algorithm_list:
         if config.model in Networks:
             genotype = Networks[config.model]
             run_name = "{}-{}-{}".format(config.model, algorithm, config.dataset)
@@ -353,6 +356,35 @@ if __name__ == "__main__":
         wandb_project = "Trial_New"
         resume_str = None
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
+
+
+
+        if algorithm == "FedProx" and config.dataset == "Cifar10":
+            config.mu = 0.001
+        elif algorithm == "pFedMe" and config.dataset == "Cifar10":
+            config.beta = 1
+            config.lamda = 15
+            config.local_learning_rate = 0.01
+        elif algorithm == "PerAvg" and config.dataset == "Cifar10":
+            config.beta = 0.001
+            config.local_learning_rate = 0.01
+        elif algorithm == "FedFomo" and config.dataset == "Cifar10":
+            config.M = 5
+        elif algorithm == "MOCHA" and config.dataset == "Cifar10":
+            config.itk = 4000
+        elif algorithm == "FedAMP" and config.dataset == "Cifar10":
+            config.alphaK = 5e-3
+            config.lamda = 5e-7
+            config.sigma = 1e-1
+
+        elif algorithm == "HeurFedAMP" and config.dataset == "Cifar10":
+            config.alphaK  = 2.5e-1
+            config.lamda = 2.5e-5
+            config.sigma = 10
+            config.xi = 0.998
+
+        print_info(config)
+
         try:
             run(
                 goal=config.goal,
