@@ -342,6 +342,7 @@ if __name__ == "__main__":
     algorithm_list = ["FedAMP", "HeurFedAMP", "pFedMe", "FedProx"]
     config.model = "DARTS"
     for algorithm in algorithm_list:
+        config.algorithm = algorithm
         if config.model in Networks:
             genotype = Networks[config.model]
             run_name = "{}-{}-{}".format(config.model, algorithm, config.dataset)
@@ -359,25 +360,25 @@ if __name__ == "__main__":
 
 
 
-        if algorithm == "FedProx" and config.dataset == "Cifar10":
+        if config.algorithm == "FedProx" and config.dataset == "Cifar10":
             config.mu = 0.001
-        elif algorithm == "pFedMe" and config.dataset == "Cifar10":
+        elif config.algorithm == "pFedMe" and config.dataset == "Cifar10":
             config.beta = 1
             config.lamda = 15
             config.local_learning_rate = 0.01
-        elif algorithm == "PerAvg" and config.dataset == "Cifar10":
+        elif config.algorithm == "PerAvg" and config.dataset == "Cifar10":
             config.beta = 0.001
             config.local_learning_rate = 0.01
-        elif algorithm == "FedFomo" and config.dataset == "Cifar10":
+        elif config.algorithm == "FedFomo" and config.dataset == "Cifar10":
             config.M = 5
-        elif algorithm == "MOCHA" and config.dataset == "Cifar10":
+        elif config.algorithm == "MOCHA" and config.dataset == "Cifar10":
             config.itk = 4000
-        elif algorithm == "FedAMP" and config.dataset == "Cifar10":
+        elif config.algorithm == "FedAMP" and config.dataset == "Cifar10":
             config.alphaK = 5e-3
             config.lamda = 5e-7
             config.sigma = 1e-1
 
-        elif algorithm == "HeurFedAMP" and config.dataset == "Cifar10":
+        elif config.algorithm == "HeurFedAMP" and config.dataset == "Cifar10":
             config.alphaK  = 2.5e-1
             config.lamda = 2.5e-5
             config.sigma = 10
@@ -391,7 +392,7 @@ if __name__ == "__main__":
                 dataset=config.dataset,
                 num_labels=config.num_labels,
                 device=config.device,
-                algorithm=algorithm,
+                algorithm=config.algorithm,
                 model=config.model,
                 local_batch_size=config.local_batch_size,
                 local_learning_rate=config.local_learning_rate,
