@@ -12,6 +12,7 @@ class clientProx(Client):
     def __init__(self, device, numeric_id, train_slow, send_slow, train_data, test_data, model, batch_size, learning_rate,
                  local_steps, mu):
         super().__init__(device, numeric_id, train_slow, send_slow, train_data, test_data, model, batch_size, learning_rate,
+
                          local_steps)
 
         self.mu = mu

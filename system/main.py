@@ -16,6 +16,7 @@ from flcore.servers.serverfomo import FedFomo
 from flcore.servers.servermocha import MOCHA
 from flcore.servers.serveramp import FedAMP
 from flcore.servers.serverhamp import HeurFedAMP
+from flcore.servers.serverlocal import Local_server
 from flcore.trainmodel.models import *
 from flcore.trainmodel.resnet import resnet18 as resnet
 from utils.result_utils import average_data
@@ -158,7 +159,10 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             server = HeurFedAMP(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
                             send_slow_rate, time_select, goal, time_threthold, alphaK, lamda, sigma, xi)
-
+        elif algorithm == "Local":
+            server = Local_server(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
+                            local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate,
+                            send_slow_rate, time_select, goal, time_threthold)
         del(model)
         server.train()
 
@@ -193,13 +197,13 @@ if __name__ == "__main__":
                         choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", \
                         "sogounews"])
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
-    parser.add_argument('-m', "--model", type=str, default="cnn")
+    parser.add_argument('-m', "--model", type=str, default="Searched")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
     parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.01,
                         help="Local learning rate")
     parser.add_argument('-gr', "--global_rounds", type=int, default=1000)
     parser.add_argument('-ls', "--local_steps", type=int, default=20)
-    parser.add_argument('-algo', "--algorithm", type=str, default="FedProx",
+    parser.add_argument('-algo', "--algorithm", type=str, default="Local",
                         choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \
                         "FedFomo", "MOCHA", "FedPlayer", "FedAMP", "HeurFedAMP"])
     parser.add_argument('-jc', "--join_clients", type=int, default=5,
@@ -330,10 +334,11 @@ if __name__ == "__main__":
     for user in user_list:
         print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
     print(genotype_list)
-    model_owner = 0
+    # model_owner = 0
 
-    algorithm_list = ["FedAvg"]
-    for algorithm in algorithm_list:
+    algorithm = "Local"
+    # algorithm_list = ["pFedMe"]
+    for model_owner in range(5):
         if config.model in Networks:
             genotype = Networks[config.model]
             run_name = "{}-{}-{}".format(config.model, algorithm, config.dataset)
@@ -383,6 +388,8 @@ if __name__ == "__main__":
             )
         except:
             wandb.finish()
+
+        torch.cuda.empty_cache()
 
 
         # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
