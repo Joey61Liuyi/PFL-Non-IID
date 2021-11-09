@@ -318,6 +318,7 @@ if __name__ == "__main__":
     genotype_list = {}
     user_list = {}
     user = 0
+    choose_epoch = 70
     for line in open(log_dir):
         if "<<<--->>>" in line:
             tep_dict = ast.literal_eval(re.search('({.+})', line).group(0))
@@ -326,11 +327,18 @@ if __name__ == "__main__":
                 for k in j:
                     if 'skip_connect' in k[0]:
                         count += 1
-            if count == 2:
-                # if user%5 not in genotype_list:
-                # logger.log("user{}'s architecture is chosen from epoch {}".format(user%5, user//5))
-                genotype_list[user % 5] = tep_dict
-                user_list[user % 5] = user // 5
+            if choose_epoch !=None:
+                if user//5 == choose_epoch:
+                    # if user%5 not in genotype_list:
+                    # logger.log("user{}'s architecture is chosen from epoch {}".format(user%5, user//5))
+                    genotype_list[user % 5] = tep_dict
+                    user_list[user % 5] = user // 5
+            else:
+                if count == 2:
+                    # if user%5 not in genotype_list:
+                    # logger.log("user{}'s architecture is chosen from epoch {}".format(user%5, user//5))
+                    genotype_list[user % 5] = tep_dict
+                    user_list[user % 5] = user // 5
             user += 1
 
     for user in user_list:
@@ -340,8 +348,10 @@ if __name__ == "__main__":
 
     # algorithm = "Local"
     algorithm_list = ["FedAMP", "pFedMe"]
-    config.model = "DARTS"
-    for algorithm in algorithm_list:
+    config.model = "Searched"
+    algorithm = "FedAvg"
+
+    for model_owner in [0, 1, 2, 3, 4]:
         config.algorithm = algorithm
         if config.model in Networks:
             genotype = Networks[config.model]
@@ -350,6 +360,7 @@ if __name__ == "__main__":
             if model_owner != None:
                 genotype = genotype_list[model_owner]
                 run_name = "{}-{}-{}-{}".format(config.model, model_owner, algorithm, config.dataset)
+                config.local_learning_rate = 0.01
             else:
                 genotype = None
         seed = 666
