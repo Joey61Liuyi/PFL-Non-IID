@@ -339,7 +339,7 @@ if __name__ == "__main__":
     # model_owner = 0
 
     # algorithm = "Local"
-    algorithm_list = ["FedAvg"]
+    algorithm_list = ["FedAMP", "pFedMe"]
     config.model = "DARTS"
     for algorithm in algorithm_list:
         config.algorithm = algorithm

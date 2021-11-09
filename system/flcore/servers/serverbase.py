@@ -76,6 +76,33 @@ class Server(object):
                 train_set.data, train_set.targets = train_data
             for _, train_data in enumerate(testloader, 0):
                 test_set.data, test_set.targets = train_data
+        elif dataset == "Cifar100":
+            mean = [x / 255 for x in [129.3, 124.1, 112.4]]
+            std = [x / 255 for x in [68.2, 65.4, 70.4]]
+            lists = [
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomCrop(32, padding=4),
+                transforms.ToTensor(),
+                transforms.Normalize(mean, std),
+            ]
+            train_transform = transforms.Compose(lists)
+            test_transform = transforms.Compose(
+                [transforms.ToTensor(), transforms.Normalize(mean, std)]
+            )
+            xshape = (1, 3, 32, 32)
+            train_set = torchvision.datasets.CIFAR100(
+                "../dataset/{}/rawdata".format(dataset), train=True, transform=train_transform, download=True
+            )
+            test_set = torchvision.datasets.CIFAR100(
+                "../dataset/{}/rawdata".format(dataset), train=False, transform=test_transform, download=True
+            )
+            assert len(train_set) == 50000 and len(test_set) == 10000
+            trainloader = torch.utils.data.DataLoader(train_set, batch_size=len(train_set.data), shuffle=False)
+            testloader = torch.utils.data.DataLoader(test_set, batch_size=len(test_set.data), shuffle=False)
+            for _, train_data in enumerate(trainloader, 0):
+                train_set.data, train_set.targets = train_data
+            for _, train_data in enumerate(testloader, 0):
+                test_set.data, test_set.targets = train_data
 
         user_data = np.load('./Dirichlet_0.5_Use_valid_False_{}_non_iid_setting.npy'.format(dataset),
                             allow_pickle=True).item()
