@@ -6,7 +6,7 @@ import time
 import warnings
 import numpy as np
 import wandb
-
+import os
 
 from flcore.servers.serveravg import FedAvg
 from flcore.servers.serverpFedMe import pFedMe
@@ -154,7 +154,6 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             server = FedAMP(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
                             send_slow_rate, time_select, goal, time_threthold, alphaK, lamda, sigma, run_name)
-        
         elif algorithm == "HeurFedAMP":
             server = HeurFedAMP(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
@@ -179,8 +178,8 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
         average_data(dataset=dataset, algorithm=algorithm+'_p', goal=goal, times=times, length=global_rounds/eval_gap+1)
 
     print("All done!")
-
     reporter.report()
+    os.system("Lock.vbs")
 
 def print_info(config):
 
@@ -311,8 +310,10 @@ if __name__ == "__main__":
     #     on_trace_ready=torch.profiler.tensorboard_trace_handler('./log')
     #     ) as prof:
     # with torch.autograd.profiler.profile(profile_memory=True) as prof:
-
-    log_dir = "./0.5Dirichlet_Serched_result.log"
+    if config.dataset == "Cifar10":
+        log_dir = "./0.5Dirichlet_Serched_result.log"
+    elif config.dataset == "Cifar100":
+        log_dir = "./0.5Dirichlet_Serched_result_cifar100.log"
     model_owner = 0
     # model_list = ["resnet", "GDAS_V1"]
     genotype_list = {}
@@ -347,11 +348,11 @@ if __name__ == "__main__":
     # model_owner = 0
 
     # algorithm = "Local"
-    algorithm_list = ["FedAMP", "pFedMe"]
+    algorithm_list = ["FedPro"]
     config.model = "Searched"
-    algorithm = "FedAvg"
+    algorithm = "FedAMP"
 
-    for model_owner in [0, 1, 2, 3, 4]:
+    for algorithm in algorithm_list:
         config.algorithm = algorithm
         if config.model in Networks:
             genotype = Networks[config.model]
@@ -365,11 +366,9 @@ if __name__ == "__main__":
                 genotype = None
         seed = 666
         prepare_seed(seed)
-        wandb_project = "Trial_New"
+        wandb_project = "PAS+X"
         resume_str = None
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
-
-
 
         if config.algorithm == "FedProx" and config.dataset == "Cifar10":
             config.mu = 0.001

@@ -30,7 +30,7 @@ class FedProx(Server):
             self.send_models()
             if i<self.global_rounds/2:
                 eval_gap = 50
-            elif i< self.global_rounds*9/10 and i>=self.global_rounds/2:
+            elif i< self.global_rounds * 95/100 and i>=self.global_rounds/2:
                 eval_gap = 20
             else:
                 eval_gap = 1
