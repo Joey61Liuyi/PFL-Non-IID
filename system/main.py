@@ -7,6 +7,8 @@ import warnings
 import numpy as np
 import wandb
 import os
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 from flcore.servers.serveravg import FedAvg
 from flcore.servers.serverpFedMe import pFedMe
@@ -44,7 +46,7 @@ def prepare_seed(rand_seed):
 
 def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, local_learning_rate, global_rounds, local_steps, join_clients, 
         num_clients, beta, lamda, K, p_learning_rate, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, 
-        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi, genotype, run_name):
+        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi, genotype, run_name, resume_path):
 
     time_list = []
     reporter = MemReporter()
@@ -104,11 +106,15 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
                             num_labels=num_labels).to(device)
 
         else:
+            if dataset == "Cifar100":
+                class_num = 100
+            elif dataset == "Cifar10":
+                class_num = 10
             model_config_dict = {
                 "super_type": "infer-nasnet.cifar",
                 "genotype": "none",
                 "dataset": "cifar",
-                "class_num": 10,
+                "class_num": class_num,
                 "ichannel": 33,
                 "layers": 2,
                 "stem_multi": 3,
@@ -168,8 +174,8 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             server = FedRep(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate,
                             send_slow_rate, time_select, goal, time_threthold, run_name)
-
-
+        if resume_path!=None:
+            server.load_model(resume_path)
         del(model)
         server.train()
 
@@ -180,15 +186,15 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
 
 
     # Global average
-    average_data(dataset=dataset, algorithm=algorithm, goal=goal, times=times, length=global_rounds/eval_gap+1)
+    # average_data(dataset=dataset, algorithm=algorithm, goal=goal, times=times, length=global_rounds/eval_gap+1)
 
     # Personalization average
-    if algorithm == "pFedMe": 
-        average_data(dataset=dataset, algorithm=algorithm+'_p', goal=goal, times=times, length=global_rounds/eval_gap+1)
+    # if algorithm == "pFedMe":
+    #     average_data(dataset=dataset, algorithm=algorithm+'_p', goal=goal, times=times, length=global_rounds/eval_gap+1)
 
     print("All done!")
     reporter.report()
-    os.system("Lock.vbs")
+    # os.system("logoff")
 
 def print_info(config):
 
@@ -253,9 +259,7 @@ if __name__ == "__main__":
     parser.add_argument('-dev', "--device", type=str, default="cuda",
                         choices=["cpu", "cuda"])
     parser.add_argument('-did', "--device_id", type=str, default="0")
-    parser.add_argument('-data', "--dataset", type=str, default="Cifar10",
-                        choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", \
-                                 "sogounews"])
+    parser.add_argument('-data', "--dataset", type=str, default="Cifar10", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
     # parser.add_argument('-m', "--model", type=str, default="cnn")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
@@ -323,7 +327,6 @@ if __name__ == "__main__":
         log_dir = "./0.5Dirichlet_Serched_result.log"
     elif config.dataset == "Cifar100":
         log_dir = "./0.5Dirichlet_Serched_result_cifar100.log"
-    model_owner = 0
     # model_list = ["resnet", "GDAS_V1"]
     genotype_list = {}
     user_list = {}
@@ -354,14 +357,19 @@ if __name__ == "__main__":
     for user in user_list:
         print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
     print(genotype_list)
+    resume_path = None
     # model_owner = 0
 
     # algorithm = "Local"
-    algorithm_list = ["FedRep"]
-    config.model = "Searched"
+    # algorithm_list = ["FedAMP"]
+    # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
+    # algorithm_list = ["FedAvg"]
+    config.model = "SETN"
     algorithm = "FedRep"
+    # model_owner = None
+    resume_str = "bfivb9qe"
 
-    for algorithm in algorithm_list:
+    for model_owner in [1]:
         config.algorithm = algorithm
         if config.model in Networks:
             genotype = Networks[config.model]
@@ -375,8 +383,13 @@ if __name__ == "__main__":
                 genotype = None
         seed = 666
         prepare_seed(seed)
-        wandb_project = "PAS+X"
-        resume_str = None
+        if config.model == "Searched":
+            wandb_project = "PAS+X"
+        else:
+            wandb_project = "NAS+X"
+
+        if resume_str!=None:
+            resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
         if config.algorithm == "FedProx" and config.dataset == "Cifar10":
@@ -435,11 +448,13 @@ if __name__ == "__main__":
             xi=config.xi,
             genotype=genotype,
             run_name = run_name,
+            resume_path = resume_path
         )
 
         wandb.finish()
         torch.cuda.empty_cache()
 
+os.system("logoff")
 
         # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
         # print(f"\nTotal time cost: {round(time.time()-total_start, 2)}s.")

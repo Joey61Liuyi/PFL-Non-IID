@@ -27,6 +27,7 @@ class Server(object):
         self.time_select = time_select
         self.goal = goal
         self.time_threthold = time_threthold
+        self.start_epoch = 0
 
         self.clients = []
         self.selected_clients = []
@@ -234,10 +235,14 @@ class Server(object):
         }
         torch.save(checkpoint_dict, os.path.join(model_path, self.run_name + ".pth"))
 
-    # def load_model(self):
-    #     model_path = os.path.join("models", self.dataset, "server" + ".pt")
-    #     assert (os.path.exists(model_path))
-    #     self.global_model = torch.load(model_path)
+    def load_model(self, path):
+        # model_path = os.path.join("models", self.dataset, "server" + ".pt")
+        # assert (os.path.exists(model_path))
+        print(os.path)
+        info = torch.load(path)
+        self.global_model.load_state_dict(info['model_dict'])
+        self.start_epoch = info['epoch'] + 1
+        # self.global_model = torch.load(model_path)
 
     # def model_exists(self):
     #     return os.path.exists(os.path.join("models", self.dataset, "server" + ".pt"))

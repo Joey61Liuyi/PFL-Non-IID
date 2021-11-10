@@ -13,7 +13,7 @@ class clientAVG(Client):
                          local_steps)
 
         self.loss = nn.CrossEntropyLoss()
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate, momentum = 0.9, weight_decay=0.0005, nesterov=1)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate)
         # self.scheduler = OrCosineAnnealingLR(self.optimizer, 5, 100, 95, 1e-4)
         # scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.65)
     def train(self):

@@ -32,7 +32,7 @@ class Local_server(Server):
         print("Finished creating server and clients.")
 
     def train(self):
-        for i in range(self.global_rounds+1):
+        for i in range(self.start_epoch, self.global_rounds+1):
             self.send_models()
 
             if i%self.eval_gap == 0:

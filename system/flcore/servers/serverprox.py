@@ -10,14 +10,14 @@ class FedProx(Server):
                  mu, run_name):
         super().__init__(dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                          num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, 
-                         time_threthold)
+                         time_threthold, run_name)
         # select slow clients
         self.set_slow_clients()
         
         for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
             # train, test = read_client_data(dataset, i)
             client = clientProx(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size,
-                           learning_rate, local_steps, mu, run_name)
+                           learning_rate, local_steps, mu)
             self.clients.append(client)
         del (self.train_all)
         del (self.test_all)
@@ -25,7 +25,7 @@ class FedProx(Server):
         print("Finished creating server and clients.")
 
     def train(self):
-        for i in range(self.global_rounds+1):
+        for i in range(self.start_epoch, self.global_rounds+1):
             print(f"\n-------------Round number: {i}-------------")
             self.send_models()
             if i<self.global_rounds/2:

@@ -39,7 +39,7 @@ class pFedMe(Server):
         print("Finished creating server and clients.")
 
     def train(self):
-        for i in range(self.global_rounds+1):
+        for i in range(self.start_epoch, self.global_rounds+1):
             print(f"\n-------------Round number: {i}-------------")
             self.send_models()
             if i < self.global_rounds / 2:
