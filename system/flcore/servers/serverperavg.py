@@ -16,8 +16,8 @@ class PerAvg(Server):
         self.set_slow_clients()
 
         for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
-            train, test = read_client_data(dataset, i)
-            client = clientPerAvg(device, i, train_slow, send_slow, train, test, model, batch_size,
+            # train, test = read_client_data(dataset, i)
+            client = clientPerAvg(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size,
                                   learning_rate, local_steps, beta)
             self.clients.append(client)
 
