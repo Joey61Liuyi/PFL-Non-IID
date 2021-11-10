@@ -366,9 +366,9 @@ if __name__ == "__main__":
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
     config.model = "SETN"
-    algorithm = "FedRep"
+    algorithm = "FedProx"
     # model_owner = None
-    resume_str = "bfivb9qe"
+    resume_str = "2mrjfw6d"
 
     for model_owner in [1]:
         config.algorithm = algorithm

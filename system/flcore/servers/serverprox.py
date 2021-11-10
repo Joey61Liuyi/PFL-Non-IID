@@ -58,6 +58,8 @@ class FedProx(Server):
 
             self.receive_models()
             self.aggregate_parameters()
+            if i % 100 == 0:
+                self.save_global_model_middle(i)
 
         print("\nBest global results.")
         self.print_(max(self.rs_test_acc), max(self.rs_train_acc), min(self.rs_train_loss), personalized_acc)
