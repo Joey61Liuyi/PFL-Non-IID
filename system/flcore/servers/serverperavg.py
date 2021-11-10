@@ -3,7 +3,7 @@ from flcore.clients.clientperavg import clientPerAvg
 from flcore.servers.serverbase import Server
 from utils.data_utils import read_client_data
 from threading import Thread
-
+import wandb
 
 class PerAvg(Server):
     def __init__(self, device, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
@@ -16,8 +16,8 @@ class PerAvg(Server):
         self.set_slow_clients()
 
         for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
-            train, test = read_client_data(dataset, i)
-            client = clientPerAvg(device, i, train_slow, send_slow, train, test, model, batch_size,
+            # train, test = read_client_data(dataset, i)
+            client = clientPerAvg(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size,
                                   learning_rate, local_steps, beta)
             self.clients.append(client)
 
@@ -27,14 +27,28 @@ class PerAvg(Server):
     def train(self):
         for i in range(self.start_epoch, self.global_rounds+1):
             # send all parameter for clients
+            print(f"\n-------------Round number: {i}-------------")
             self.send_models()
-            if i%self.eval_gap == 0:
-                print(f"\n-------------Round number: {i}-------------")
-                print("\nEvaluate global model with one step update")
-                self.evaluate_one_step()
+            if i < self.global_rounds / 2:
+                eval_gap = 50
+            elif i < self.global_rounds * 95 / 100 and i >= self.global_rounds / 2:
+                eval_gap = 20
+            else:
+                eval_gap = 1
+            if i % eval_gap == 0:
+                print("\nEvaluate global model")
+                test_acc, train_acc, train_loss, personalized_acc = self.evaluate_one_step(i)
+                info_dict = {
+                    "learning_rate": self.clients[0].optimizer.state_dict()['param_groups'][0]['lr'],
+                    "global_valid_top1_acc": test_acc * 100,
+                    "average_valid_top1_acc": personalized_acc * 100,
+                    "epoch": i
+                }
+                # print(info_dict)
+                wandb.log(info_dict)
 
             # choose several clients to send back upated model to server
-            self.selected_clients = self.select_clients()
+            self.selected_clients = self.clients
             for client in self.selected_clients:
                 client.train()
 
@@ -55,13 +69,13 @@ class PerAvg(Server):
             self.save_global_model_middle(i)
 
 
-    def evaluate_one_step(self):
+    def evaluate_one_step(self, epoch):
         models_temp = []
         for c in self.clients:
             models_temp.append(copy.deepcopy(c.model))
             c.train_one_step()
 
-        stats = self.test_accuracy()
+        stats = self.test_accuracy(epoch)
         stats_train = self.train_accuracy_and_loss()
 
         # set local model back to client for training process
@@ -71,8 +85,10 @@ class PerAvg(Server):
         test_acc = sum(stats[2])*1.0 / sum(stats[1])
         train_acc = sum(stats_train[2])*1.0 / sum(stats_train[1])
         train_loss = sum(stats_train[3])*1.0 / sum(stats_train[1])
+        personalized_acc = stats[3]
         
         self.rs_test_acc.append(test_acc)
         self.rs_train_acc.append(train_acc)
         self.rs_train_loss.append(train_loss)
-        self.print_(test_acc, train_acc, train_loss)
+        self.print_(test_acc, train_acc, train_loss, personalized_acc)
+        return test_acc, train_acc, train_loss, personalized_acc
