@@ -357,16 +357,18 @@ if __name__ == "__main__":
     # model_owner = 0
 
     # algorithm = "Local"
-    algorithm_list = ["FedRep"]
-    config.model = "Searched"
-    algorithm = "FedRep"
+    algorithm_list = ["PerAvg"]
+    config.model = "NASNet"
+    algorithm = "PerAvg"
 
     for algorithm in algorithm_list:
         config.algorithm = algorithm
         if config.model in Networks:
             genotype = Networks[config.model]
+            wandb_project = "NAS+X"
             run_name = "{}-{}-{}".format(config.model, algorithm, config.dataset)
         else:
+            wandb_project = "PAS+X"
             if model_owner != None:
                 genotype = genotype_list[model_owner]
                 run_name = "{}-{}-{}-{}".format(config.model, model_owner, algorithm, config.dataset)
@@ -375,7 +377,6 @@ if __name__ == "__main__":
                 genotype = None
         seed = 666
         prepare_seed(seed)
-        wandb_project = "PAS+X"
         resume_str = None
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
