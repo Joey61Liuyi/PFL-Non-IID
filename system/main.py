@@ -16,6 +16,7 @@ from flcore.servers.serverfomo import FedFomo
 from flcore.servers.servermocha import MOCHA
 from flcore.servers.serveramp import FedAMP
 from flcore.servers.serverhamp import HeurFedAMP
+from flcore.servers.serverfedrep import FedRep
 from flcore.servers.serverlocal import Local_server
 from flcore.trainmodel.models import *
 from flcore.trainmodel.resnet import resnet18 as resnet
@@ -162,13 +163,21 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             server = Local_server(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate,
                             send_slow_rate, time_select, goal, time_threthold, run_name)
+
+        if algorithm == "FedRep":
+            server = FedRep(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
+                            local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate,
+                            send_slow_rate, time_select, goal, time_threthold, run_name)
+
+
         del(model)
         server.train()
 
         time_list.append(time.time()-start)
 
     print(f"\nAverage time cost: {round(np.average(time_list), 2)}s.")
-    
+
+
 
     # Global average
     average_data(dataset=dataset, algorithm=algorithm, goal=goal, times=times, length=global_rounds/eval_gap+1)
@@ -348,9 +357,9 @@ if __name__ == "__main__":
     # model_owner = 0
 
     # algorithm = "Local"
-    algorithm_list = ["FedPro"]
+    algorithm_list = ["FedRep"]
     config.model = "Searched"
-    algorithm = "FedAMP"
+    algorithm = "FedRep"
 
     for algorithm in algorithm_list:
         config.algorithm = algorithm
@@ -387,52 +396,48 @@ if __name__ == "__main__":
             config.alphaK = 5e-3
             config.lamda = 5e-7
             config.sigma = 1e-1
-
         elif config.algorithm == "HeurFedAMP" and config.dataset == "Cifar10":
             config.alphaK  = 2.5e-1
             config.lamda = 2.5e-5
             config.sigma = 10
             config.xi = 0.998
-
         print_info(config)
 
-        try:
-            run(
-                goal=config.goal,
-                dataset=config.dataset,
-                num_labels=config.num_labels,
-                device=config.device,
-                algorithm=config.algorithm,
-                model=config.model,
-                local_batch_size=config.local_batch_size,
-                local_learning_rate=config.local_learning_rate,
-                global_rounds=config.global_rounds,
-                local_steps=config.local_steps,
-                join_clients=config.join_clients,
-                num_clients=config.num_clients,
-                beta=config.beta,
-                lamda=config.lamda,
-                K=config.K,
-                p_learning_rate=config.p_learning_rate,
-                times=config.times,
-                eval_gap=config.eval_gap,
-                client_drop_rate=config.client_drop_rate,
-                train_slow_rate=config.train_slow_rate,
-                send_slow_rate=config.send_slow_rate,
-                time_select=config.time_select,
-                time_threthold=config.time_threthold,
-                M = config.M,
-                mu=config.mu,
-                itk=config.itk,
-                alphaK=config.alphaK,
-                sigma=config.sigma,
-                xi=config.xi,
-                genotype=genotype,
-                run_name = run_name,
-            )
-        except:
-            wandb.finish()
+        run(
+            goal=config.goal,
+            dataset=config.dataset,
+            num_labels=config.num_labels,
+            device=config.device,
+            algorithm=config.algorithm,
+            model=config.model,
+            local_batch_size=config.local_batch_size,
+            local_learning_rate=config.local_learning_rate,
+            global_rounds=config.global_rounds,
+            local_steps=config.local_steps,
+            join_clients=config.join_clients,
+            num_clients=config.num_clients,
+            beta=config.beta,
+            lamda=config.lamda,
+            K=config.K,
+            p_learning_rate=config.p_learning_rate,
+            times=config.times,
+            eval_gap=config.eval_gap,
+            client_drop_rate=config.client_drop_rate,
+            train_slow_rate=config.train_slow_rate,
+            send_slow_rate=config.send_slow_rate,
+            time_select=config.time_select,
+            time_threthold=config.time_threthold,
+            M = config.M,
+            mu=config.mu,
+            itk=config.itk,
+            alphaK=config.alphaK,
+            sigma=config.sigma,
+            xi=config.xi,
+            genotype=genotype,
+            run_name = run_name,
+        )
 
+        wandb.finish()
         torch.cuda.empty_cache()
 
 
