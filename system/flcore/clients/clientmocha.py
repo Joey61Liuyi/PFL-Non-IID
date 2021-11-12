@@ -36,6 +36,7 @@ class clientMOCHA(Client):
             x, y = self.get_next_train_batch()
             self.optimizer.zero_grad()
             output = self.model(x)
+            output = self.nas_competetive_output(output)
             loss = self.loss(output, y)
 
             self.W_glob[:, self.idx] = flatten(self.model)

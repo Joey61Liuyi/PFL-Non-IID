@@ -259,7 +259,7 @@ if __name__ == "__main__":
     parser.add_argument('-dev', "--device", type=str, default="cuda",
                         choices=["cpu", "cuda"])
     parser.add_argument('-did', "--device_id", type=str, default="0")
-    parser.add_argument('-data', "--dataset", type=str, default="Cifar10", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
+    parser.add_argument('-data', "--dataset", type=str, default="Cifar100", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
     # parser.add_argument('-m', "--model", type=str, default="cnn")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
@@ -365,10 +365,10 @@ if __name__ == "__main__":
     # algorithm_list = ["FedAMP"]
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
-    config.model = "SETN"
-    algorithm = "FedProx"
+    config.model = "NASNet"
+    algorithm = "MOCHA"
     # model_owner = None
-    resume_str = "2mrjfw6d"
+    resume_str = None
 
     for model_owner in [1]:
         config.algorithm = algorithm
@@ -452,7 +452,6 @@ if __name__ == "__main__":
         wandb.finish()
         torch.cuda.empty_cache()
 
-os.system("logoff")
 
         # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
         # print(f"\nTotal time cost: {round(time.time()-total_start, 2)}s.")
