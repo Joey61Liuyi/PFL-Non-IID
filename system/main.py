@@ -366,11 +366,11 @@ if __name__ == "__main__":
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
     config.model = "SETN"
-    algorithm = "FedProx"
+    algorithm = "FedRep"
     # model_owner = None
-    resume_str = "2mrjfw6d"
+    resume_str = None
 
-    for model_owner in [1]:
+    for model_owner in [None]:
         config.algorithm = algorithm
         if config.model in Networks:
             genotype = Networks[config.model]
@@ -412,6 +412,11 @@ if __name__ == "__main__":
             config.lamda = 2.5e-5
             config.sigma = 10
             config.xi = 0.998
+
+        elif config.algorithm == "FedRep" and config.dataset == "Cifar10":
+            config.local_learning_rate = 0.001
+
+
         print_info(config)
 
         run(
@@ -452,7 +457,6 @@ if __name__ == "__main__":
         wandb.finish()
         torch.cuda.empty_cache()
 
-os.system("logoff")
 
         # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
         # print(f"\nTotal time cost: {round(time.time()-total_start, 2)}s.")
