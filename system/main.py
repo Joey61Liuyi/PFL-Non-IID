@@ -390,33 +390,32 @@ if __name__ == "__main__":
             resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
-        if config.algorithm == "FedProx" and config.dataset == "Cifar10":
+        if config.algorithm == "FedProx":
             config.mu = 0.001
-        elif config.algorithm == "pFedMe" and config.dataset == "Cifar10":
+        elif config.algorithm == "pFedMe":
             config.beta = 1
             config.lamda = 15
             config.local_learning_rate = 0.01
-        elif config.algorithm == "PerAvg" and config.dataset == "Cifar10":
+        elif config.algorithm == "PerAvg":
             config.beta = 0.001
             config.local_learning_rate = 0.01
-        elif config.algorithm == "FedFomo" and config.dataset == "Cifar10":
+        elif config.algorithm == "FedFomo":
             config.M = 5
-        elif config.algorithm == "MOCHA" and config.dataset == "Cifar10":
+        elif config.algorithm == "MOCHA":
             config.itk = 4000
-        elif config.algorithm == "FedAMP" and config.dataset == "Cifar10":
+        elif config.algorithm == "FedAMP":
             config.alphaK = 5e-3
             config.lamda = 5e-7
             config.sigma = 1e-1
-        elif config.algorithm == "HeurFedAMP" and config.dataset == "Cifar10":
+        elif config.algorithm == "HeurFedAMP":
             config.alphaK  = 2.5e-1
             config.lamda = 2.5e-5
             config.sigma = 10
             config.xi = 0.998
-
-        elif config.algorithm == "FedRep" and config.dataset == "Cifar10":
+        elif config.algorithm == "FedRep":
             config.local_learning_rate = 0.001
 
-
+        print(run_name)
         print_info(config)
 
         run(
@@ -456,7 +455,7 @@ if __name__ == "__main__":
 
         wandb.finish()
         torch.cuda.empty_cache()
-
+        os.system("logoff")
 
         # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
         # print(f"\nTotal time cost: {round(time.time()-total_start, 2)}s.")
