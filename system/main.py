@@ -259,7 +259,7 @@ if __name__ == "__main__":
     parser.add_argument('-dev', "--device", type=str, default="cuda",
                         choices=["cpu", "cuda"])
     parser.add_argument('-did', "--device_id", type=str, default="0")
-    parser.add_argument('-data', "--dataset", type=str, default="Cifar10", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
+    parser.add_argument('-data', "--dataset", type=str, default="Cifar100", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
     # parser.add_argument('-m', "--model", type=str, default="cnn")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
@@ -365,12 +365,12 @@ if __name__ == "__main__":
     # algorithm_list = ["FedAMP"]
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
-    config.model = "SETN"
-    algorithm = "FedRep"
+    config.model = "NASNet"
+    algorithm = "MOCHA"
     # model_owner = None
     resume_str = None
 
-    for model_owner in [None]:
+    for model_owner in [1]:
         config.algorithm = algorithm
         if config.model in Networks:
             genotype = Networks[config.model]

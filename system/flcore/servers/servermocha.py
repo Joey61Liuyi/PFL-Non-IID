@@ -4,7 +4,7 @@ from utils.data_utils import read_client_data
 from threading import Thread
 import itertools
 import torch
-
+import wandb
 
 class MOCHA(Server):
     def __init__(self, device, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
@@ -26,8 +26,8 @@ class MOCHA(Server):
         self.set_slow_clients()
 
         for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
-            train, test = read_client_data(dataset, i)
-            client = clientMOCHA(device, i, train_slow, send_slow, train, test, model, batch_size, learning_rate, 
+            # train, test = read_client_data(dataset, i)
+            client = clientMOCHA(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size, learning_rate,
                                 local_steps, omega, itk)
             self.clients.append(client)
             
@@ -36,13 +36,27 @@ class MOCHA(Server):
 
     def train(self):
         for i in range(self.global_rounds+1):
-            self.selected_clients = self.select_clients()
+            print(f"\n-------------Round number: {i}-------------")
+            self.selected_clients = self.clients
             self.send_values()
+            if i < self.global_rounds / 2:
+                eval_gap = 50
 
-            if i%self.eval_gap == 0:
-                print(f"\n-------------Round number: {i}-------------")
+            elif i < self.global_rounds * 95 / 100 and i >= self.global_rounds / 2:
+                eval_gap = 20
+            else:
+                eval_gap = 1
+            if i % eval_gap == 0:
                 print("\nEvaluate global model")
-                self.evaluate()
+                test_acc, train_acc, train_loss, personalized_acc = self.evaluate(i)
+                info_dict = {
+                    "learning_rate": self.clients[0].optimizer.state_dict()['param_groups'][0]['lr'],
+                    "global_valid_top1_acc": test_acc * 100,
+                    "average_valid_top1_acc": personalized_acc * 100,
+                    "epoch": i
+                }
+                # print(info_dict)
+                wandb.log(info_dict)
 
             for client in self.selected_clients:
                 client.train()
