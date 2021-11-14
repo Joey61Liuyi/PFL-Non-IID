@@ -10,13 +10,13 @@ import numpy as np
 
 class FedAvg(Server):
     def __init__(self, device, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
-                 num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, time_threthold, run_name):
+                 num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, time_threthold, run_name, choose_client):
         super().__init__(dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                          num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, 
                          time_threthold, run_name)
         # select slow clients
         self.set_slow_clients()
-        for i, train_slow, send_slow in zip(range(self.num_clients), self.train_slow_clients, self.send_slow_clients):
+        for i, train_slow, send_slow in zip(choose_client, self.train_slow_clients, self.send_slow_clients):
             # train, test = read_client_data(dataset, i)
             client = clientAVG(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size, learning_rate, local_steps)
             self.clients.append(client)

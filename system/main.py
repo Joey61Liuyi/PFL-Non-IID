@@ -35,6 +35,17 @@ import random
 vocab_size = 98635
 max_len=200
 hidden_dim=32
+from scipy import spatial
+
+
+def distance_calculation(a,b):
+    tep = []
+    for i in range(len(a)):
+        if i < len(a)/2:
+            tep.append(spatial.distance.cosine(a[i], b[i]))
+        tep.append(spatial.distance.cosine(a[i], b[i]))
+
+    return np.average(tep)
 
 
 def prepare_seed(rand_seed):
@@ -46,7 +57,7 @@ def prepare_seed(rand_seed):
 
 def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, local_learning_rate, global_rounds, local_steps, join_clients, 
         num_clients, beta, lamda, K, p_learning_rate, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, 
-        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi, genotype, run_name, resume_path):
+        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi, genotype, run_name, resume_path, choose_client):
 
     time_list = []
     reporter = MemReporter()
@@ -130,7 +141,7 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
         if algorithm == "FedAvg":
             server = FedAvg(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
-                            send_slow_rate, time_select, goal, time_threthold, run_name)
+                            send_slow_rate, time_select, goal, time_threthold, run_name, choose_client)
 
         elif algorithm == "PerAvg":
             server = PerAvg(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
@@ -259,7 +270,7 @@ if __name__ == "__main__":
     parser.add_argument('-dev', "--device", type=str, default="cuda",
                         choices=["cpu", "cuda"])
     parser.add_argument('-did', "--device_id", type=str, default="0")
-    parser.add_argument('-data', "--dataset", type=str, default="Cifar100", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
+    parser.add_argument('-data', "--dataset", type=str, default="Cifar10", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
     # parser.add_argument('-m', "--model", type=str, default="cnn")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
@@ -323,17 +334,48 @@ if __name__ == "__main__":
     #     on_trace_ready=torch.profiler.tensorboard_trace_handler('./log')
     #     ) as prof:
     # with torch.autograd.profiler.profile(profile_memory=True) as prof:
+
+    user_num = 20
+
     if config.dataset == "Cifar10":
-        log_dir = "./0.5Dirichlet_Serched_result.log"
+        if user_num == 20:
+            log_dir = "./20_0.5Dirichlet_Serched_result.log"
+        else:
+            log_dir = "./0.5Dirichlet_Serched_result.log"
     elif config.dataset == "Cifar100":
         log_dir = "./0.5Dirichlet_Serched_result_cifar100.log"
     # model_list = ["resnet", "GDAS_V1"]
     genotype_list = {}
     user_list = {}
     user = 0
-    choose_epoch = 70
+    choose_epoch = 50
+    log_swith = False
+    alpha_buffer = ""
+    add_record = 0
+    alpha_dict = {}
+
+
     for line in open(log_dir):
-        if "<<<--->>>" in line:
+        if log_swith:
+            alpha_buffer += line
+            add_record+=1
+            if 'cuda' in line:
+                log_swith = False
+                alpha_tep = re.findall(re.compile(r'[[](.*)[]]', re.S), alpha_buffer)[0]
+                alpha_tep = "alpha_tep = ["+alpha_tep+"]"
+                exec(alpha_tep)
+                print(alpha_tep)
+                if user%user_num in alpha_dict:
+                    alpha_dict[user%user_num] = alpha_dict[user%user_num] + alpha_tep
+                else:
+                    alpha_dict[user%user_num] = alpha_tep
+                alpha_buffer = ""
+        if "<<<<--->>>>" in line:
+            if user//user_num == choose_epoch:
+                alpha_buffer = line
+                log_swith = True
+                add_record = 1
+        elif "<<<--->>>" in line:
             tep_dict = ast.literal_eval(re.search('({.+})', line).group(0))
             count = 0
             for j in tep_dict['normal']:
@@ -341,23 +383,43 @@ if __name__ == "__main__":
                     if 'skip_connect' in k[0]:
                         count += 1
             if choose_epoch !=None:
-                if user//5 == choose_epoch:
-                    # if user%5 not in genotype_list:
-                    # logger.log("user{}'s architecture is chosen from epoch {}".format(user%5, user//5))
-                    genotype_list[user % 5] = tep_dict
-                    user_list[user % 5] = user // 5
+                if user//user_num == choose_epoch:
+                    # if user%user_num not in genotype_list:
+                    # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
+                    genotype_list[user % user_num] = tep_dict
+                    user_list[user % user_num] = user // user_num
             else:
                 if count == 2:
-                    # if user%5 not in genotype_list:
-                    # logger.log("user{}'s architecture is chosen from epoch {}".format(user%5, user//5))
-                    genotype_list[user % 5] = tep_dict
-                    user_list[user % 5] = user // 5
+                    # if user%user_num not in genotype_list:
+                    # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
+                    genotype_list[user % user_num] = tep_dict
+                    user_list[user % user_num] = user // user_num
             user += 1
 
     for user in user_list:
         print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
+
+    model_owner = 4
+    K = 10
+
+    config.num_clients = user_num
+    config.join_clients = K
+
+
+    base_alpha = alpha_dict[model_owner]
+    distance_dict = {}
+    for one in alpha_dict:
+        distance_dict[one] = distance_calculation(base_alpha, alpha_dict[one])
+
+    dic1SortList = sorted(distance_dict.items(), key=lambda x: x[1], reverse=False)
+
+    choose_client = [dic1SortList[i][0] for i in range(K)]
+
     print(genotype_list)
     resume_path = None
+
+
+
     # model_owner = 0
 
     # algorithm = "Local"
@@ -365,8 +427,8 @@ if __name__ == "__main__":
     # algorithm_list = ["FedAMP"]
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
-    config.model = "NASNet"
-    algorithm = "MOCHA"
+    config.model = "Searched"
+    algorithm = "FedAvg"
     # model_owner = None
     resume_str = None
 
@@ -450,12 +512,13 @@ if __name__ == "__main__":
             xi=config.xi,
             genotype=genotype,
             run_name = run_name,
-            resume_path = resume_path
+            resume_path = resume_path,
+            choose_client = choose_client
         )
 
         wandb.finish()
         torch.cuda.empty_cache()
-        os.system("logoff")
+
 
         # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
         # print(f"\nTotal time cost: {round(time.time()-total_start, 2)}s.")
