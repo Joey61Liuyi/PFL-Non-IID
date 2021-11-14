@@ -442,7 +442,7 @@ if __name__ == "__main__":
             wandb_project = "PAS+X"
             if model_owner != None:
                 genotype = genotype_list[model_owner]
-                run_name = "{}-{}-{}-{}".format(config.model, model_owner, algorithm, config.dataset)
+                run_name = "{}-{}-{}-{}-{}".format(config.model, model_owner, algorithm, config.dataset, K)
                 config.local_learning_rate = 0.01
             else:
                 genotype = None
@@ -450,6 +450,8 @@ if __name__ == "__main__":
         prepare_seed(seed)
         if resume_str!=None:
             resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
+        if user_num == 20:
+            wandb_project = "scalability experiment"
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
         if config.algorithm == "FedProx":
