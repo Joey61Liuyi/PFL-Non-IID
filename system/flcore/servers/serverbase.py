@@ -272,7 +272,7 @@ class Server(object):
             accuracy_list.append(acc)
             info_dict["{}user_a_top1".format(c.id)] = acc
 
-        wandb.log(info_dict)
+        # wandb.log(info_dict)
         mean_acc = np.mean(accuracy_list)
         ids = [c.id for c in self.clients]
 

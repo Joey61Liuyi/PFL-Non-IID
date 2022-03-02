@@ -20,6 +20,7 @@ from flcore.servers.serveramp import FedAMP
 from flcore.servers.serverhamp import HeurFedAMP
 from flcore.servers.serverfedrep import FedRep
 from flcore.servers.serverlocal import Local_server
+from flcore.servers.serverFedMD import FedMD
 from flcore.trainmodel.models import *
 from flcore.trainmodel.resnet import resnet18 as resnet
 from utils.result_utils import average_data
@@ -185,6 +186,11 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             server = FedRep(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate,
                             send_slow_rate, time_select, goal, time_threthold, run_name)
+        if algorithm == "FedMD":
+            server = FedMD(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
+                            local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate,
+                            send_slow_rate, time_select, goal, time_threthold, run_name, choose_client)
+
         if resume_path!=None:
             server.load_model(resume_path)
         del(model)
@@ -278,7 +284,7 @@ if __name__ == "__main__":
                         help="Local learning rate")
     parser.add_argument('-gr', "--global_rounds", type=int, default=1000)
     parser.add_argument('-ls', "--local_steps", type=int, default=20)
-    parser.add_argument('-algo', "--algorithm", type=str, default="FedAvg",
+    parser.add_argument('-algo', "--algorithm", type=str, default="FedMD",
                         choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \
                                  "FedFomo", "MOCHA", "FedPlayer", "FedAMP", "HeurFedAMP"])
     parser.add_argument('-jc', "--join_clients", type=int, default=5,
@@ -427,8 +433,8 @@ if __name__ == "__main__":
     # algorithm_list = ["FedAMP"]
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
-    config.model = "Searched"
-    algorithm = "FedAvg"
+    config.model = "cnn"
+    algorithm = "FedMD"
     # model_owner = None
     resume_str = None
 
@@ -452,7 +458,7 @@ if __name__ == "__main__":
             resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
         if user_num == 20:
             wandb_project = "scalability experiment"
-        wandb.init(project=wandb_project, name=run_name, resume=resume_str)
+        # wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
         if config.algorithm == "FedProx":
             config.mu = 0.001
