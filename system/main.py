@@ -342,7 +342,6 @@ if __name__ == "__main__":
     # with torch.autograd.profiler.profile(profile_memory=True) as prof:
 
     user_num = 5
-
     if config.dataset == "Cifar10":
         if user_num == 20:
             log_dir = "./20_0.5Dirichlet_Serched_result.log"
@@ -359,7 +358,6 @@ if __name__ == "__main__":
     alpha_buffer = ""
     add_record = 0
     alpha_dict = {}
-
 
     for line in open(log_dir):
         if log_swith:
@@ -388,6 +386,7 @@ if __name__ == "__main__":
                 for k in j:
                     if 'skip_connect' in k[0]:
                         count += 1
+
             if choose_epoch !=None:
                 if user//user_num == choose_epoch:
                     # if user%user_num not in genotype_list:
@@ -405,26 +404,19 @@ if __name__ == "__main__":
     for user in user_list:
         print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
 
-    model_owner = 4
-    K = 10
-
+    model_owner = 1
+    K = 5
     config.num_clients = user_num
     config.join_clients = K
-
-
-    base_alpha = alpha_dict[model_owner]
-    distance_dict = {}
-    for one in alpha_dict:
-        distance_dict[one] = distance_calculation(base_alpha, alpha_dict[one])
-
-    dic1SortList = sorted(distance_dict.items(), key=lambda x: x[1], reverse=False)
-
-    choose_client = [dic1SortList[i][0] for i in range(K)]
-
+    # base_alpha = alpha_dict[model_owner]
+    # distance_dict = {}
+    # for one in alpha_dict:
+    #     distance_dict[one] = distance_calculation(base_alpha, alpha_dict[one])
+    # dic1SortList = sorted(distance_dict.items(), key=lambda x: x[1], reverse=False)
+    # choose_client = [dic1SortList[i][0] for i in range(K)]
+    choose_client = [0, 1, 2, 3, 4]
     print(genotype_list)
     resume_path = None
-
-
 
     # model_owner = 0
 

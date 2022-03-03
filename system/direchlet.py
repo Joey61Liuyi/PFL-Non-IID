@@ -360,7 +360,7 @@ if __name__ == '__main__':
     root = '../dataset/{}'.format(data_name)
     train_data, test_data, xshape, class_num = get_datasets(data_name, root, 0)
     tep_train, tep_valid, tep_public = data_partition(train_data, test_data, alpha, user_num)
-    valid_use = True
+    valid_use = False
     for one in tep_train:
         if valid_use:
             # a = np.random.choice(tep[one], int(len(tep[one])/2), replace=False)

@@ -15,9 +15,22 @@ class clientFedMD(Client):
                          local_steps)
 
         self.loss = nn.CrossEntropyLoss()
+        self.MD_loss = nn.MSELoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate)
+        self.aggregated_logits = None
+        self.MD_logits = None
         # self.scheduler = OrCosineAnnealingLR(self.optimizer, 5, 100, 95, 1e-4)
         # scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.65)
+
+    def predict(self, x):
+        logits = self.model(x)
+        self.MD_logits = logits
+        return logits
+
+    def MD_aggregation(self, aggregated_logits):
+        loss = self.MD_loss(self.MD_logits, aggregated_logits)
+        loss.backward()
+        self.optimizer.step()
 
     def train(self):
         start_time = time.time()
@@ -56,8 +69,6 @@ class clientFedMD(Client):
             loss = self.loss(output, y)
             loss.backward()
             self.optimizer.step()
-
         # self.model.cpu()
-
         self.train_time_cost['num_rounds'] += 1
         self.train_time_cost['total_cost'] += time.time() - start_time
