@@ -341,7 +341,7 @@ if __name__ == "__main__":
     #     ) as prof:
     # with torch.autograd.profiler.profile(profile_memory=True) as prof:
 
-    user_num = 20
+    user_num = 5
 
     if config.dataset == "Cifar10":
         if user_num == 20:
