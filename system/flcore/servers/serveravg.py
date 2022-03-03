@@ -65,7 +65,7 @@ class FedAvg(Server):
 
         print("\nBest global results.")
         self.print_(max(self.rs_test_acc), max(
-            self.rs_train_acc), min(self.rs_train_loss), personalized_acc)
+            self.rs_train_acc), min(self.rs_train_loss), max(self.rs_personalized_acc))
 
         self.save_results()
         self.save_global_model()

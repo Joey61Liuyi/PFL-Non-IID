@@ -425,7 +425,7 @@ if __name__ == "__main__":
     # algorithm_list = ["FedAMP"]
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
-    config.model = "cnn"
+    config.model = "AlexNet"
     algorithm = "FedMD"
     # model_owner = None
     resume_str = None
@@ -450,7 +450,11 @@ if __name__ == "__main__":
             resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
         if user_num == 20:
             wandb_project = "scalability experiment"
-        # wandb.init(project=wandb_project, name=run_name, resume=resume_str)
+
+        wandb_project = "ECCV"
+        run_name = "FedMD_AlexNet"
+
+        wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
         if config.algorithm == "FedProx":
             config.mu = 0.001
