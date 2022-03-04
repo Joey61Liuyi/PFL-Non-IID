@@ -12,7 +12,7 @@ import numpy as np
 
 class FedMD(Server):
     def __init__(self, device, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
-                 num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, time_threthold, run_name, choose_client):
+                 num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, time_threthold, run_name, choose_client, step_alignment):
         super().__init__(dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                          num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal,
                          time_threthold, run_name)
@@ -24,7 +24,7 @@ class FedMD(Server):
             self.clients.append(client)
         self.device = device
         self.public_data_loader = DataLoader(self.public, batch_size, drop_last=True)
-        self.alignment_step = int(local_steps/20)
+        self.alignment_step = step_alignment
         del(self.train_all)
         del(self.test_all)
         del(self.public)
@@ -96,14 +96,14 @@ class FedMD(Server):
                     x, y = self.get_next_train_batch()
                     logits = None
                     for client in self.clients:
-                        tep=copy.deepcopy(client.predict(x).detach())
+                        tep = copy.deepcopy(client.predict(x).detach())
                         if logits == None:
                             logits = tep
                         else:
                             logits += tep
                     logits /= len(self.clients)
                     for client in self.clients:
-                        client.MD_aggregation(logits)
+                        client.MD_aggregation(x, logits)
 
 
             # threads = [Thread(target=client.train)

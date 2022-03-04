@@ -22,12 +22,17 @@ class clientFedMD(Client):
         # scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.65)
 
     def predict(self, x):
+        self.model.eval()
         logits = self.nas_competetive_output(self.model(x))
         self.MD_logits = logits
         return logits
 
-    def MD_aggregation(self, aggregated_logits):
-        loss = self.MD_loss(self.MD_logits, aggregated_logits)
+    def MD_aggregation(self,x,  aggregated_logits):
+        self.model.train()
+        self.optimizer.zero_grad()
+        output = self.model(x)
+        output = self.nas_competetive_output(output)
+        loss = self.MD_loss(output, aggregated_logits)
         loss.backward()
         self.optimizer.step()
 
