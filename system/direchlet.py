@@ -356,7 +356,7 @@ if __name__ == '__main__':
     user_data = {}
     alpha = 0.5
     user_num = 5
-    data_name = 'cifar10'
+    data_name = 'cifar100'
     root = '../dataset/{}'.format(data_name)
     train_data, test_data, xshape, class_num = get_datasets(data_name, root, 0)
     tep_train, tep_valid, tep_public = data_partition(train_data, test_data, alpha, user_num)
