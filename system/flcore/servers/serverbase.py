@@ -110,6 +110,7 @@ class Server(object):
 
         train_all = []
         test_all = []
+        public = []
         for i in range(self.num_clients):
             train_index = user_data[i]["train"] + user_data[i]["test"]
             test_index = user_data[i]["valid"]
@@ -121,8 +122,11 @@ class Server(object):
                 test.append((test_set.data[index], test_set.targets[index]))
             train_all.append(train)
             test_all.append(test)
+        for index in user_data['public']:
+            public.append((train_set.data[index], train_set.targets[index]))
         self.train_all = train_all
         self.test_all = test_all
+        self.public = public
 
 
     # random select slow clients

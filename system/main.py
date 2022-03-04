@@ -13,6 +13,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 from flcore.servers.serveravg import FedAvg
 from flcore.servers.serverpFedMe import pFedMe
 from flcore.servers.serverperavg import PerAvg
+from flcore.servers.serverMD import FedMD
 from flcore.servers.serverprox import FedProx
 from flcore.servers.serverfomo import FedFomo
 from flcore.servers.servermocha import MOCHA
@@ -157,6 +158,10 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             server = FedProx(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
                             send_slow_rate, time_select, goal, time_threthold, mu, run_name)
+        elif algorithm == "FedMD":
+            server = FedMD(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
+                            local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate,
+                            send_slow_rate, time_select, goal, time_threthold, run_name, choose_client)
 
         elif algorithm == "FedFomo":
             server = FedFomo(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
@@ -427,8 +432,8 @@ if __name__ == "__main__":
     # algorithm_list = ["FedAMP"]
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
-    config.model = "Searched"
-    algorithm = "FedAvg"
+    config.model = "cnn"
+    algorithm = "FedMD"
     # model_owner = None
     resume_str = None
 
@@ -452,6 +457,7 @@ if __name__ == "__main__":
             resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
         if user_num == 20:
             wandb_project = "scalability experiment"
+        wandb_project = "ECCV"
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
         if config.algorithm == "FedProx":
