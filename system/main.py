@@ -452,7 +452,7 @@ if __name__ == "__main__":
             wandb_project = "scalability experiment"
 
         wandb_project = "ECCV"
-        run_name = "FedMD_AlexNet"
+        run_name = "Individual_AlexNet"
 
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 

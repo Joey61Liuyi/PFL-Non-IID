@@ -34,6 +34,21 @@ class FedMD(Server):
         print(f"\nJoin clients / total clients: {self.join_clients} / {self.num_clients}")
         print("Finished creating server and clients.")
 
+    def nas_competetive_output(self, output):
+
+        if isinstance(output, tuple):
+            output = output[1]
+
+        if isinstance(output, list):
+            assert len(output) == 2, "output must has {:} items instead of {:}".format(
+                2, len(output)
+            )
+            output, output_aux = output
+        else:
+            output, output_aux = output, None
+
+        return output
+
     def get_next_train_batch(self):
         try:
             # Samples a new batch for persionalizing
@@ -76,18 +91,19 @@ class FedMD(Server):
                 # client.scheduler.update(i, 0.0)
                 client.train()
 
-            if i >= self.global_rounds/5:
-                for step in range(self.alignment_step):
-                    x, y = self.get_next_train_batch()
-                    logits = None
-                    for client in self.clients:
-                        if logits == None:
-                            logits = copy.deepcopy(client.predict(x).detach())
-                        else:
-                            logits += copy.deepcopy(client.predict(x).detach())
-                    logits /= len(self.clients)
-                    for client in self.clients:
-                        client.MD_aggregation(logits)
+            # if i >= self.global_rounds/5:
+            #     for step in range(self.alignment_step):
+            #         x, y = self.get_next_train_batch()
+            #         logits = None
+            #         for client in self.clients:
+            #             tep=copy.deepcopy(client.predict(x).detach())
+            #             if logits == None:
+            #                 logits = tep
+            #             else:
+            #                 logits += tep
+            #         logits /= len(self.clients)
+            #         for client in self.clients:
+            #             client.MD_aggregation(logits)
 
 
             # threads = [Thread(target=client.train)

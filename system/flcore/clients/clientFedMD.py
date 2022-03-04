@@ -23,7 +23,7 @@ class clientFedMD(Client):
         # scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.65)
 
     def predict(self, x):
-        logits = self.model(x)
+        logits = self.nas_competetive_output(self.model(x))
         self.MD_logits = logits
         return logits
 
