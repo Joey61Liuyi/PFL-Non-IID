@@ -227,10 +227,13 @@ class NASNetonCIFAR(nn.Module):
         out = self.global_pooling(out)
         out = out.view(out.size(0), -1)
         logits = self.classifier(out)
-        if logits_aux is None:
-            return out, logits
-        else:
-            return out, [logits, logits_aux]
+        cell_results.pop(0)
+        return logits, cell_results
+        # if logits_aux is None:
+        #     return out, logits
+        # else:
+        #     return out, [logits, logits_aux]
+
 
 
 Genotype = namedtuple('Genotype', 'normal normal_concat reduce reduce_concat connectN connects')

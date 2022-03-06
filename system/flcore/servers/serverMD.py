@@ -97,7 +97,6 @@ class FedMD(Server):
                     logits = []
                     for client in self.clients:
                         logits.append(copy.deepcopy(client.predict(x)))
-
                     aggregated_logits = []
                     for j in range(len(logits[0])):
                         tep = None

@@ -434,8 +434,8 @@ if __name__ == "__main__":
     # algorithm_list = ["FedAMP"]
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
-    config.model = "GDAS_V1"
-    algorithm = "FedAvg"
+    config.model = "DARTS"
+    algorithm = "FedMD"
     # model_owner = None
     resume_str = None
     genotype = None

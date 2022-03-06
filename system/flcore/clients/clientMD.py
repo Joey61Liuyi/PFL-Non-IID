@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from flcore.clients.clientbase import Client
+import torch.nn.functional as F
 from flcore.optimizers.fedoptimizer import CosineAnnealingLR, OrCosineAnnealingLR
 import numpy as np
 import time
@@ -26,16 +27,34 @@ class clientFedMD(Client):
     def predict(self, x):
         self.model.eval()
         # logits = self.nas_competetive_output(self.model(x))
-        logits = self.model(x)
-        self.MD_logits = logits
-        return (logits[0].detach(), logits[1].detach())
+        output = self.model(x)
+        if isinstance(output, tuple):
+            logits, cell_result = output
+            for j in range(len(cell_result)):
+                cell_result[j] = cell_result[j].detach().view(-1)
+                cell_result[j] = F.log_softmax(cell_result[j])
+            cell_result.append(logits.detach())
+        # self.MD_logits = cell_result
+        return cell_result
 
     def MD_aggregation(self,x,  aggregated_logits):
         self.model.train()
         self.MD_optimizer.zero_grad()
         output = self.model(x)
+        if isinstance(output, tuple):
+            logits, cell_result = output
+            for j in range(len(cell_result)):
+                cell_result[j] = cell_result[j].view(-1)
+                cell_result[j] = F.log_softmax(cell_result[j])
+            cell_result.append(logits)
+
+        loss = 0
+        for i in range(len(cell_result)):
+            loss += self.MD_loss(cell_result[i], aggregated_logits[i])/len(cell_result[i])
+        # loss = [self.MD_loss(cell_result[i], aggregated_logits[i]) for i in range(len(output))]
         # output = self.nas_competetive_output(output)
-        loss = self.MD_loss(output[0], aggregated_logits[0]) + self.MD_loss(output[1], aggregated_logits[1])
+        # loss = self.MD_loss(output[0], aggregated_logits[0]) + self.MD_loss(output[1], aggregated_logits[1])
+        # loss = torch.sum(loss_list)
         loss.backward()
         self.MD_optimizer.step()
 
@@ -72,8 +91,8 @@ class clientFedMD(Client):
             x = x.to(self.device)
             y = y.to(self.device)
             output = self.model(x)
-            # output = self.nas_competetive_output(output)
-            output = output[1]
+            output = self.nas_competetive_output(output)
+            # output = output[1]
             loss = self.loss(output, y)
             loss.backward()
             self.optimizer.step()
