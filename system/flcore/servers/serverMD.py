@@ -92,7 +92,7 @@ class FedMD(Server):
                 # client.scheduler.update(i, 0.0)
                 client.train()
 
-            if i >= self.global_rounds/5:
+            if i > self.global_rounds/5:
                 for step in range(self.alignment_step):
                     x, y = self.get_next_train_batch()
                     logits = []
