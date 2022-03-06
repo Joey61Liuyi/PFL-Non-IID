@@ -95,7 +95,7 @@ class clientFedMD(Client):
             output = self.model(x)
             output = self.nas_competetive_output(output)
             # output = output[1]
-            if torch.any(torch.isnan(output)):
+            if torch.all(torch.isnan(output)):
                 sys.exit()
             loss = self.loss(output, y)
             loss.backward()
