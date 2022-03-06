@@ -15,8 +15,9 @@ class clientFedMD(Client):
                          local_steps)
 
         self.loss = nn.CrossEntropyLoss()
-        self.MD_loss = nn.KLDivLoss()
+        self.MD_loss = nn.MSELoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate)
+        self.MD_optimizer = torch.optim.SGD(self.model.parameters(), lr=0.005)
         self.aggregated_logits = None
         self.MD_logits = None
         # self.scheduler = OrCosineAnnealingLR(self.optimizer, 5, 100, 95, 1e-4)
@@ -24,18 +25,19 @@ class clientFedMD(Client):
 
     def predict(self, x):
         self.model.eval()
-        logits = self.nas_competetive_output(self.model(x))
+        # logits = self.nas_competetive_output(self.model(x))
+        logits = self.model(x)
         self.MD_logits = logits
-        return logits
+        return (logits[0].detach(), logits[1].detach())
 
     def MD_aggregation(self,x,  aggregated_logits):
         self.model.train()
-        self.optimizer.zero_grad()
+        self.MD_optimizer.zero_grad()
         output = self.model(x)
-        output = self.nas_competetive_output(output)
-        loss = self.MD_loss(output, aggregated_logits)
+        # output = self.nas_competetive_output(output)
+        loss = self.MD_loss(output[0], aggregated_logits[0]) + self.MD_loss(output[1], aggregated_logits[1])
         loss.backward()
-        self.optimizer.step()
+        self.MD_optimizer.step()
 
     def train(self):
         start_time = time.time()
@@ -70,7 +72,8 @@ class clientFedMD(Client):
             x = x.to(self.device)
             y = y.to(self.device)
             output = self.model(x)
-            output = self.nas_competetive_output(output)
+            # output = self.nas_competetive_output(output)
+            output = output[1]
             loss = self.loss(output, y)
             loss.backward()
             self.optimizer.step()

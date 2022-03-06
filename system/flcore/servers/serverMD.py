@@ -94,16 +94,23 @@ class FedMD(Server):
             if i >= self.global_rounds/5:
                 for step in range(self.alignment_step):
                     x, y = self.get_next_train_batch()
-                    logits = None
+                    logits = []
                     for client in self.clients:
-                        tep = copy.deepcopy(client.predict(x).detach())
-                        if logits == None:
-                            logits = tep
-                        else:
-                            logits += tep
-                    logits /= len(self.clients)
+                        logits.append(copy.deepcopy(client.predict(x)))
+
+                    aggregated_logits = []
+                    for j in range(len(logits[0])):
+                        tep = None
+                        for k in range(len(logits)):
+                            if tep == None:
+                                tep = logits[k][j]
+                            else:
+                                tep += logits[k][j]
+                        tep /=len(self.clients)
+                        aggregated_logits.append(tep)
+
                     for client in self.clients:
-                        client.MD_aggregation(x, logits)
+                        client.MD_aggregation(x, aggregated_logits)
 
 
             # threads = [Thread(target=client.train)

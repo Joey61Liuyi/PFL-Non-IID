@@ -272,8 +272,6 @@ def print_info(config):
 if __name__ == "__main__":
 
 
-
-
     total_start = time.time()
 
     parser = argparse.ArgumentParser()
@@ -429,9 +427,6 @@ if __name__ == "__main__":
 
     # print(genotype_list)
     resume_path = None
-
-
-
     # model_owner = 0
 
     # algorithm = "Local"
@@ -439,8 +434,8 @@ if __name__ == "__main__":
     # algorithm_list = ["FedAMP"]
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
-    config.model = "cnn"
-    algorithm = "FedMD"
+    config.model = "GDAS_V1"
+    algorithm = "FedAvg"
     # model_owner = None
     resume_str = None
     genotype = None
@@ -465,7 +460,7 @@ if __name__ == "__main__":
             resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
         if user_num == 20:
             wandb_project = "scalability experiment"
-        wandb_project = "ECCV"
+        wandb_project = "ECCV_new"
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
         if config.algorithm == "FedProx":

@@ -86,12 +86,13 @@ class CifarNet(nn.Module):
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, batch_size * 5 * 5)
-        x = F.relu(self.fc1(x))
+        x1 = x.view(-1, batch_size * 5 * 5)
+        x1 = F.log_softmax(x1, dim=1)
+        x = F.relu(self.fc1(x1))
         x = F.relu(self.fc2(x))
         x = self.fc(x)
         x = F.log_softmax(x, dim=1)
-        return x
+        return x1, x
 
 # ====================================================================================================================
 
