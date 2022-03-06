@@ -1,3 +1,5 @@
+import sys
+
 import torch
 import torch.nn as nn
 from flcore.clients.clientbase import Client
@@ -16,7 +18,7 @@ class clientFedMD(Client):
                          local_steps)
 
         self.loss = nn.CrossEntropyLoss()
-        self.MD_loss = nn.MSELoss()
+        self.MD_loss = nn.KLDivLoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate)
         self.MD_optimizer = torch.optim.SGD(self.model.parameters(), lr=0.005)
         self.aggregated_logits = None
@@ -50,7 +52,7 @@ class clientFedMD(Client):
 
         loss = 0
         for i in range(len(cell_result)):
-            loss += self.MD_loss(cell_result[i], aggregated_logits[i])/len(cell_result[i])
+            loss += self.MD_loss(cell_result[i], aggregated_logits[i])/len(cell_result)
         # loss = [self.MD_loss(cell_result[i], aggregated_logits[i]) for i in range(len(output))]
         # output = self.nas_competetive_output(output)
         # loss = self.MD_loss(output[0], aggregated_logits[0]) + self.MD_loss(output[1], aggregated_logits[1])
@@ -93,6 +95,8 @@ class clientFedMD(Client):
             output = self.model(x)
             output = self.nas_competetive_output(output)
             # output = output[1]
+            if torch.any(torch.isnan(output)):
+                sys.exit()
             loss = self.loss(output, y)
             loss.backward()
             self.optimizer.step()
