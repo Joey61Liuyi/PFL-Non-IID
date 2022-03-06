@@ -207,7 +207,7 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
         if resume_path!=None:
             server.load_model(resume_path)
         del(model)
-        server.train()
+        server.train(start_epoch)
 
         time_list.append(time.time()-start)
 
