@@ -20,7 +20,10 @@ class Server(object):
         self.local_steps = local_steps
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.global_model = copy.deepcopy(model)
+        if isinstance(model, list):
+            self.global_model = None
+        else:
+            self.global_model = copy.deepcopy(model)
         self.join_clients = join_clients
         self.num_clients = num_clients
         self.algorithm = algorithm
@@ -232,18 +235,26 @@ class Server(object):
         model_path = os.path.join("models", self.dataset)
         if not os.path.exists(model_path):
             os.makedirs(model_path)
-        torch.save(self.global_model, os.path.join(model_path, self.algorithm + "_server" + ".pt"))
+
+        if self.global_model:
+            torch.save(self.global_model, os.path.join(model_path, self.algorithm + "_server" + ".pt"))
+        else:
+            for client in self.clients:
+                torch.save(client.model, os.path.join(model_path, self.algorithm + "_" + str(client.id) + ".pt"))
 
     def save_global_model_middle(self, epoch):
         model_path = os.path.join("models", self.dataset)
         if not os.path.exists(model_path):
             os.makedirs(model_path)
-
-        checkpoint_dict = {
-            "epoch": epoch,
-            "model_dict": self.global_model.state_dict()
-        }
-        torch.save(checkpoint_dict, os.path.join(model_path, self.run_name + ".pth"))
+        if self.global_model:
+            checkpoint_dict = {
+                "epoch": epoch,
+                "model_dict": self.global_model.state_dict()
+            }
+            torch.save(checkpoint_dict, os.path.join(model_path, self.run_name + ".pth"))
+        else:
+            for client in self.clients:
+                torch.save(client.model, os.path.join(model_path, self.algorithm + "_" + str(client.id) + "_" + str(epoch)+".pt"))
 
     def load_model(self, path):
         # model_path = os.path.join("models", self.dataset, "server" + ".pt")
@@ -282,7 +293,7 @@ class Server(object):
             accuracy_list.append(acc)
             info_dict["{}user_a_top1".format(c.id)] = acc
 
-        wandb.log(info_dict)
+        # wandb.log(info_dict)
         mean_acc = np.mean(accuracy_list)
         ids = [c.id for c in self.clients]
 

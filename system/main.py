@@ -136,8 +136,11 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             }
             Arguments = namedtuple("Configure", " ".join(model_config_dict.keys()))
             content = Arguments(**model_config_dict)
-            Model = obtain_model(content, genotype)
-            Model = Model.to(device)
+            Model = []
+            for i in range(len(genotype)):
+                Model_tep = obtain_model(content, genotype[i])
+                Model_tep = Model_tep.to(device)
+                Model.append(Model_tep)
 
         # select algorithm
         if algorithm == "FedAvg":
@@ -348,7 +351,7 @@ if __name__ == "__main__":
     #     ) as prof:
     # with torch.autograd.profiler.profile(profile_memory=True) as prof:
 
-    user_num = 20
+    user_num = 5
 
     if config.dataset == "Cifar10":
         if user_num == 20:
@@ -366,55 +369,53 @@ if __name__ == "__main__":
     alpha_buffer = ""
     add_record = 0
     alpha_dict = {}
-    #
-    # for line in open(log_dir):
-    #     if log_swith:
-    #         alpha_buffer += line
-    #         add_record+=1
-    #         if 'cuda' in line:
-    #             log_swith = False
-    #             alpha_tep = re.findall(re.compile(r'[[](.*)[]]', re.S), alpha_buffer)[0]
-    #             alpha_tep = "alpha_tep = ["+alpha_tep+"]"
-    #             exec(alpha_tep)
-    #             print(alpha_tep)
-    #             if user%user_num in alpha_dict:
-    #                 alpha_dict[user%user_num] = alpha_dict[user%user_num] + alpha_tep
-    #             else:
-    #                 alpha_dict[user%user_num] = alpha_tep
-    #             alpha_buffer = ""
-    #     if "<<<<--->>>>" in line:
-    #         if user//user_num == choose_epoch:
-    #             alpha_buffer = line
-    #             log_swith = True
-    #             add_record = 1
-    #     elif "<<<--->>>" in line:
-    #         tep_dict = ast.literal_eval(re.search('({.+})', line).group(0))
-    #         count = 0
-    #         for j in tep_dict['normal']:
-    #             for k in j:
-    #                 if 'skip_connect' in k[0]:
-    #                     count += 1
-    #         if choose_epoch !=None:
-    #             if user//user_num == choose_epoch:
-    #                 # if user%user_num not in genotype_list:
-    #                 # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
-    #                 genotype_list[user % user_num] = tep_dict
-    #                 user_list[user % user_num] = user // user_num
-    #         else:
-    #             if count == 2:
-    #                 # if user%user_num not in genotype_list:
-    #                 # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
-    #                 genotype_list[user % user_num] = tep_dict
-    #                 user_list[user % user_num] = user // user_num
-    #         user += 1
-    #
-    # for user in user_list:
-    #     print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
-    model_owner = 4
-    K = user_num
 
+    for line in open(log_dir):
+        if log_swith:
+            alpha_buffer += line
+            add_record += 1
+            if 'cuda' in line:
+                log_swith = False
+                alpha_tep = re.findall(re.compile(r'[[](.*)[]]', re.S), alpha_buffer)[0]
+                alpha_tep = "alpha_tep = ["+alpha_tep+"]"
+                exec(alpha_tep)
+                print(alpha_tep)
+                if user%user_num in alpha_dict:
+                    alpha_dict[user%user_num] = alpha_dict[user%user_num] + alpha_tep
+                else:
+                    alpha_dict[user%user_num] = alpha_tep
+                alpha_buffer = ""
+        if "<<<<--->>>>" in line:
+            if user//user_num == choose_epoch:
+                alpha_buffer = line
+                log_swith = True
+                add_record = 1
+        elif "<<<--->>>" in line:
+            tep_dict = ast.literal_eval(re.search('({.+})', line).group(0))
+            count = 0
+            for j in tep_dict['normal']:
+                for k in j:
+                    if 'skip_connect' in k[0]:
+                        count += 1
+            if choose_epoch !=None:
+                if user//user_num == choose_epoch:
+                    # if user%user_num not in genotype_list:
+                    # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
+                    genotype_list[user % user_num] = tep_dict
+                    user_list[user % user_num] = user // user_num
+            else:
+                if count == 2:
+                    # if user%user_num not in genotype_list:
+                    # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
+                    genotype_list[user % user_num] = tep_dict
+                    user_list[user % user_num] = user // user_num
+            user += 1
+
+    for user in user_list:
+        print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
+    K = user_num
     config.num_clients = user_num
-    config.join_clients = user_num/2
+    config.join_clients = user_num
     choose_client = list(range(user_num))
     # base_alpha = alpha_dict[model_owner]
     # distance_dict = {}
@@ -434,102 +435,98 @@ if __name__ == "__main__":
     # algorithm_list = ["FedAMP"]
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
-    config.model = "DARTS"
+    config.model = "Searched"
     algorithm = "FedMD"
     # model_owner = None
     resume_str = None
-    genotype = None
+    genotype = genotype_list
 
-    for model_owner in [1]:
-        config.algorithm = algorithm
-        if config.model in Networks:
-            genotype = Networks[config.model]
-            wandb_project = "NAS+X"
-            run_name = "{}-{}-{}".format(config.model, algorithm, config.dataset)
-        else:
-            wandb_project = "PAS+X"
-            if model_owner != None:
-                # genotype = genotype_list[model_owner]
-                run_name = "{}-{}-{}-{}-{}".format(config.model, model_owner, algorithm, config.dataset, K)
-                config.local_learning_rate = 0.01
-            else:
-                genotype = None
-        seed = 666
-        prepare_seed(seed)
-        if resume_str!=None:
-            resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
-        if user_num == 20:
-            wandb_project = "scalability experiment"
-        wandb_project = "ECCV_new"
-        wandb.init(project=wandb_project, name=run_name, resume=resume_str)
+    config.algorithm = algorithm
+    if config.model in Networks:
+        genotype = Networks[config.model]
+        wandb_project = "NAS+X"
+        run_name = "{}-{}-{}".format(config.model, algorithm, config.dataset)
+    else:
+        wandb_project = "PAS+X"
+        run_name = "{}-{}-{}-{}".format(config.model, algorithm, config.dataset, K)
+        config.local_learning_rate = 0.01
 
-        if config.algorithm == "FedProx":
-            config.mu = 0.001
-        elif config.algorithm == "pFedMe":
-            config.beta = 1
-            config.lamda = 15
-            config.local_learning_rate = 0.01
-        elif config.algorithm == "PerAvg":
-            config.beta = 0.001
-            config.local_learning_rate = 0.01
-        elif config.algorithm == "FedFomo":
-            config.M = 5
-        elif config.algorithm == "MOCHA":
-            config.itk = 4000
-        elif config.algorithm == "FedAMP":
-            config.alphaK = 5e-3
-            config.lamda = 5e-7
-            config.sigma = 1e-1
-        elif config.algorithm == "HeurFedAMP":
-            config.alphaK  = 2.5e-1
-            config.lamda = 2.5e-5
-            config.sigma = 10
-            config.xi = 0.998
-        elif config.algorithm == "FedRep":
-            config.local_learning_rate = 0.001
+    seed = 666
+    prepare_seed(seed)
+    if resume_str!=None:
+        resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
+    if user_num == 20:
+        wandb_project = "scalability experiment"
+    wandb_project = "ECCV_new"
+    # wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
-        print(run_name)
-        print_info(config)
-        step_alignment = 8
-        run(
-            goal=config.goal,
-            dataset=config.dataset,
-            num_labels=config.num_labels,
-            device=config.device,
-            algorithm=config.algorithm,
-            model=config.model,
-            local_batch_size=config.local_batch_size,
-            local_learning_rate=config.local_learning_rate,
-            global_rounds=config.global_rounds,
-            local_steps=config.local_steps,
-            join_clients=config.join_clients,
-            num_clients=config.num_clients,
-            beta=config.beta,
-            lamda=config.lamda,
-            K=config.K,
-            p_learning_rate=config.p_learning_rate,
-            times=config.times,
-            eval_gap=config.eval_gap,
-            client_drop_rate=config.client_drop_rate,
-            train_slow_rate=config.train_slow_rate,
-            send_slow_rate=config.send_slow_rate,
-            time_select=config.time_select,
-            time_threthold=config.time_threthold,
-            M = config.M,
-            mu=config.mu,
-            itk=config.itk,
-            alphaK=config.alphaK,
-            sigma=config.sigma,
-            xi=config.xi,
-            genotype=genotype,
-            run_name = run_name,
-            resume_path = resume_path,
-            choose_client = choose_client,
-            step_alignment= step_alignment
-        )
+    if config.algorithm == "FedProx":
+        config.mu = 0.001
+    elif config.algorithm == "pFedMe":
+        config.beta = 1
+        config.lamda = 15
+        config.local_learning_rate = 0.01
+    elif config.algorithm == "PerAvg":
+        config.beta = 0.001
+        config.local_learning_rate = 0.01
+    elif config.algorithm == "FedFomo":
+        config.M = 5
+    elif config.algorithm == "MOCHA":
+        config.itk = 4000
+    elif config.algorithm == "FedAMP":
+        config.alphaK = 5e-3
+        config.lamda = 5e-7
+        config.sigma = 1e-1
+    elif config.algorithm == "HeurFedAMP":
+        config.alphaK  = 2.5e-1
+        config.lamda = 2.5e-5
+        config.sigma = 10
+        config.xi = 0.998
+    elif config.algorithm == "FedRep":
+        config.local_learning_rate = 0.001
 
-        wandb.finish()
-        torch.cuda.empty_cache()
+    print(run_name)
+    print_info(config)
+    step_alignment = 8
+    run(
+        goal=config.goal,
+        dataset=config.dataset,
+        num_labels=config.num_labels,
+        device=config.device,
+        algorithm=config.algorithm,
+        model=config.model,
+        local_batch_size=config.local_batch_size,
+        local_learning_rate=config.local_learning_rate,
+        global_rounds=config.global_rounds,
+        local_steps=config.local_steps,
+        join_clients=config.join_clients,
+        num_clients=config.num_clients,
+        beta=config.beta,
+        lamda=config.lamda,
+        K=config.K,
+        p_learning_rate=config.p_learning_rate,
+        times=config.times,
+        eval_gap=config.eval_gap,
+        client_drop_rate=config.client_drop_rate,
+        train_slow_rate=config.train_slow_rate,
+        send_slow_rate=config.send_slow_rate,
+        time_select=config.time_select,
+        time_threthold=config.time_threthold,
+        M = config.M,
+        mu=config.mu,
+        itk=config.itk,
+        alphaK=config.alphaK,
+        sigma=config.sigma,
+        xi=config.xi,
+        genotype=genotype,
+        run_name = run_name,
+        resume_path = resume_path,
+        choose_client = choose_client,
+        step_alignment= step_alignment
+    )
+
+    wandb.finish()
+    torch.cuda.empty_cache()
 
 
         # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))

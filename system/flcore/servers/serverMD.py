@@ -20,7 +20,7 @@ class FedMD(Server):
         self.set_slow_clients()
         for i, train_slow, send_slow in zip(choose_client, self.train_slow_clients, self.send_slow_clients):
             # train, test = read_client_data(dataset, i)
-            client = clientFedMD(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size, learning_rate, local_steps)
+            client = clientFedMD(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model[i], batch_size, learning_rate, local_steps)
             self.clients.append(client)
         self.device = device
         self.public_data_loader = DataLoader(self.public, batch_size, drop_last=True)
@@ -85,7 +85,7 @@ class FedMD(Server):
                     "epoch": i
                 }
                 # print(info_dict)
-                wandb.log(info_dict)
+                # wandb.log(info_dict)
             self.selected_clients = self.clients
             for client in self.clients:
                 # client.scheduler.update(i, 0.0)
@@ -123,6 +123,5 @@ class FedMD(Server):
 
         print("\nBest global results.")
         self.print_(max(self.rs_test_acc), max(self.rs_train_acc), min(self.rs_train_loss), max(self.rs_personalized_acc))
-
         self.save_results()
         self.save_global_model()
