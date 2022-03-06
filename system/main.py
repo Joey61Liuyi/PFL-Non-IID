@@ -59,7 +59,7 @@ def prepare_seed(rand_seed):
 
 def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, local_learning_rate, global_rounds, local_steps, join_clients, 
         num_clients, beta, lamda, K, p_learning_rate, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, 
-        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi, genotype, run_name, resume_path, choose_client, step_alignment):
+        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi, genotype, run_name, resume_path, choose_client, step_alignment, start_epoch):
 
     time_list = []
     reporter = MemReporter()
@@ -137,10 +137,16 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             Arguments = namedtuple("Configure", " ".join(model_config_dict.keys()))
             content = Arguments(**model_config_dict)
             Model = []
-            for i in range(len(genotype)):
-                Model_tep = obtain_model(content, genotype[i])
-                Model_tep = Model_tep.to(device)
-                Model.append(Model_tep)
+            if start_epoch == 0:
+                for i in range(len(genotype)):
+                    Model_tep = obtain_model(content, genotype[i])
+                    Model_tep = Model_tep.to(device)
+                    Model.append(Model_tep)
+            else:
+                for i in range(user_num):
+                    Model_tep = torch.load("./models/{}/{}_{}_{}.pt".format(dataset,algorithm,i,start_epoch))
+                    Model_tep = Model_tep.to(device)
+                    Model.append(Model_tep)
 
         # select algorithm
         if algorithm == "FedAvg":
@@ -522,7 +528,8 @@ if __name__ == "__main__":
         run_name = run_name,
         resume_path = resume_path,
         choose_client = choose_client,
-        step_alignment= step_alignment
+        step_alignment= step_alignment,
+        start_epoch=200
     )
 
     wandb.finish()
