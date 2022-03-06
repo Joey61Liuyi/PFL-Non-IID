@@ -67,7 +67,7 @@ class FedMD(Server):
         return x, y
 
     def train(self, start_epoch):
-        self.start_epoch = start_epoch
+        self.start_epoch = start_epoch+1
         for i in range(self.start_epoch, self.global_rounds+1):
             print(f"\n-------------Round number: {i}-------------")
             if i<self.global_rounds/2:

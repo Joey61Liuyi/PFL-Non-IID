@@ -20,7 +20,7 @@ class clientFedMD(Client):
         self.loss = nn.CrossEntropyLoss()
         self.MD_loss = nn.KLDivLoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate)
-        self.MD_optimizer = torch.optim.SGD(self.model.parameters(), lr=0.005)
+        self.MD_optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
         self.aggregated_logits = None
         self.MD_logits = None
         # self.scheduler = OrCosineAnnealingLR(self.optimizer, 5, 100, 95, 1e-4)
