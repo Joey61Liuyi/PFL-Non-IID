@@ -97,7 +97,7 @@ class FedMD(Server):
                     x, y = self.get_next_train_batch()
                     logits = []
                     for client in self.clients:
-                        logits.append(copy.deepcopy(client.predict(x).detach()))
+                        logits.append(copy.deepcopy(client.predict(x)))
                     aggregated_logits = []
                     for j in range(len(logits[0])):
                         tep = None
@@ -107,7 +107,7 @@ class FedMD(Server):
                             else:
                                 tep += logits[k][j]
                         tep /=len(self.clients)
-                        aggregated_logits.append(tep)
+                        aggregated_logits.append(tep.detach())
 
                     for client in self.clients:
                         client.MD_aggregation(x, aggregated_logits)

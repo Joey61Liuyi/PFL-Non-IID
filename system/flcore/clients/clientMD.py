@@ -27,16 +27,15 @@ class clientFedMD(Client):
         # scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.65)
 
     def predict(self, x):
-        # self.model.eval()
         # logits = self.nas_competetive_output(self.model(x))
         output = self.model(x)
         if isinstance(output, tuple):
             logits, cell_result = output
             for j in range(len(cell_result)):
-                cell_result[j] = cell_result[j].detach().view(-1)
+                cell_result[j] = cell_result[j].view(-1)
                 cell_result[j] = F.log_softmax(cell_result[j])
-        cell_result = [cell_result[-2], cell_result[-1]]
-        self.MD_logits = cell_result
+        self.MD_logits = [cell_result[-2], cell_result[-1]]
+        cell_result = [self.MD_logits[i].detach() for i in range(len(self.MD_logits))]
         return cell_result
 
     def MD_aggregation(self,x,  aggregated_logits):
