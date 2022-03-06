@@ -16,6 +16,7 @@ from flcore.servers.serverperavg import PerAvg
 from flcore.servers.serverMD import FedMD
 from flcore.servers.serverprox import FedProx
 from flcore.servers.serverfomo import FedFomo
+from flcore.servers.ServerGen import FedGen
 from flcore.servers.servermocha import MOCHA
 from flcore.servers.serveramp import FedAMP
 from flcore.servers.serverhamp import HeurFedAMP
@@ -143,6 +144,10 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             server = FedAvg(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
                             send_slow_rate, time_select, goal, time_threthold, run_name, choose_client)
+        elif algorithm == "FedGen":
+            server = FedGen(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
+                            local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate,
+                            send_slow_rate, time_select, goal, time_threthold, run_name, choose_client)
 
         elif algorithm == "PerAvg":
             server = PerAvg(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
@@ -221,7 +226,6 @@ def print_info(config):
         config.device = "cpu"
 
     print("=" * 50)
-
     print("Algorithm: {}".format(config.algorithm))
     print("Local batch size: {}".format(config.local_batch_size))
     print("Local steps: {}".format(config.local_steps))
@@ -267,274 +271,270 @@ def print_info(config):
 
 if __name__ == "__main__":
 
-    for step in range(1,20):
 
 
 
-        total_start = time.time()
+    total_start = time.time()
 
-        parser = argparse.ArgumentParser()
-        # general
-        parser.add_argument('-go', "--goal", type=str, default="test",
-                            help="The goal for this experiment")
-        parser.add_argument('-dev', "--device", type=str, default="cuda",
-                            choices=["cpu", "cuda"])
-        parser.add_argument('-did', "--device_id", type=str, default="0")
-        parser.add_argument('-data', "--dataset", type=str, default="Cifar10", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
-        parser.add_argument('-nb', "--num_labels", type=int, default=10)
-        # parser.add_argument('-m', "--model", type=str, default="cnn")
-        parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
-        parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.005,
-                            help="Local learning rate")
-        parser.add_argument('-gr', "--global_rounds", type=int, default=1000)
-        parser.add_argument('-ls', "--local_steps", type=int, default=20)
-        parser.add_argument('-algo', "--algorithm", type=str, default="FedAvg",
-                            choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \
-                                     "FedFomo", "MOCHA", "FedPlayer", "FedAMP", "HeurFedAMP"])
-        parser.add_argument('-jc', "--join_clients", type=int, default=5,
-                            help="Number of clients per round")
-        parser.add_argument('-nc', "--num_clients", type=int, default=5,
-                            help="Total number of clients")
-        parser.add_argument('-t', "--times", type=int, default=1,
-                            help="Running times")
-        parser.add_argument('-eg', "--eval_gap", type=int, default=1,
-                            help="Rounds gap for evaluation")
-        # practical
-        parser.add_argument('-cdr', "--client_drop_rate", type=float, default=0.0,
-                            help="Dropout rate for clients")
-        parser.add_argument('-tsr', "--train_slow_rate", type=float, default=0.0,
-                            help="The rate for slow clients when training locally")
-        parser.add_argument('-ssr', "--send_slow_rate", type=float, default=0.0,
-                            help="The rate for slow clients when sending global model")
-        parser.add_argument('-ts', "--time_select", type=bool, default=False,
-                            help="Whether to group and select clients at each round according to time cost")
-        parser.add_argument('-tth', "--time_threthold", type=float, default=float("inf"),
-                            help="The threthold for droping slow clients")
-        # pFedMe / PerAvg / FedProx / FedAMP / HeurFedAMP
-        parser.add_argument('-bt', "--beta", type=float, default=0.0,
-                            help="Average moving parameter for pFedMe, Second learning rate of Per-FedAvg")
-        parser.add_argument('-lam', "--lamda", type=float, default=15,
-                            help="Regularization weight for pFedMe and FedAMP")
-        parser.add_argument('-mu', "--mu", type=float, default=0,
-                            help="Proximal rate for FedProx")
-        parser.add_argument('-K', "--K", type=int, default=5,
-                            help="Number of personalized training steps for pFedMe")
-        parser.add_argument('-lrp', "--p_learning_rate", type=float, default=0.01,
-                            help="personalized learning rate to caculate theta aproximately using K steps")
-        # FedFomo
-        parser.add_argument('-M', "--M", type=int, default=5,
-                            help="Server only sends M client models to one client at each round")
-        # MOCHA
-        parser.add_argument('-itk', "--itk", type=int, default=4000,
-                            help="The iterations for solving quadratic subproblems")
-        # FedAMP
-        parser.add_argument('-alk', "--alphaK", type=float, default=1.0,
-                            help="lambda/sqrt(GLOABL-ITRATION) according to the paper")
-        parser.add_argument('-sg', "--sigma", type=float, default=1.0)
-        # HeurFedAMP
-        parser.add_argument('-xi', "--xi", type=float, default=1.0)
-        # FedMD
-        parser.add_argument('-stepalignment', "--sa", type=int, default=1)
+    parser = argparse.ArgumentParser()
+    # general
+    parser.add_argument('-go', "--goal", type=str, default="test",
+                        help="The goal for this experiment")
+    parser.add_argument('-dev', "--device", type=str, default="cuda",
+                        choices=["cpu", "cuda"])
+    parser.add_argument('-did', "--device_id", type=str, default="0")
+    parser.add_argument('-data', "--dataset", type=str, default="Cifar10", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
+    parser.add_argument('-nb', "--num_labels", type=int, default=10)
+    # parser.add_argument('-m', "--model", type=str, default="cnn")
+    parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
+    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.005,
+                        help="Local learning rate")
+    parser.add_argument('-gr', "--global_rounds", type=int, default=1000)
+    parser.add_argument('-ls', "--local_steps", type=int, default=20)
+    parser.add_argument('-algo', "--algorithm", type=str, default="FedAvg",
+                        choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \
+                                 "FedFomo", "MOCHA", "FedPlayer", "FedAMP", "HeurFedAMP"])
+    parser.add_argument('-jc', "--join_clients", type=int, default=5,
+                        help="Number of clients per round")
+    parser.add_argument('-nc', "--num_clients", type=int, default=5,
+                        help="Total number of clients")
+    parser.add_argument('-t', "--times", type=int, default=1,
+                        help="Running times")
+    parser.add_argument('-eg', "--eval_gap", type=int, default=1,
+                        help="Rounds gap for evaluation")
+    # practical
+    parser.add_argument('-cdr', "--client_drop_rate", type=float, default=0.0,
+                        help="Dropout rate for clients")
+    parser.add_argument('-tsr', "--train_slow_rate", type=float, default=0.0,
+                        help="The rate for slow clients when training locally")
+    parser.add_argument('-ssr', "--send_slow_rate", type=float, default=0.0,
+                        help="The rate for slow clients when sending global model")
+    parser.add_argument('-ts', "--time_select", type=bool, default=False,
+                        help="Whether to group and select clients at each round according to time cost")
+    parser.add_argument('-tth', "--time_threthold", type=float, default=float("inf"),
+                        help="The threthold for droping slow clients")
+    # pFedMe / PerAvg / FedProx / FedAMP / HeurFedAMP
+    parser.add_argument('-bt', "--beta", type=float, default=0.0,
+                        help="Average moving parameter for pFedMe, Second learning rate of Per-FedAvg")
+    parser.add_argument('-lam', "--lamda", type=float, default=15,
+                        help="Regularization weight for pFedMe and FedAMP")
+    parser.add_argument('-mu', "--mu", type=float, default=0,
+                        help="Proximal rate for FedProx")
+    parser.add_argument('-K', "--K", type=int, default=5,
+                        help="Number of personalized training steps for pFedMe")
+    parser.add_argument('-lrp', "--p_learning_rate", type=float, default=0.01,
+                        help="personalized learning rate to caculate theta aproximately using K steps")
+    # FedFomo
+    parser.add_argument('-M', "--M", type=int, default=5,
+                        help="Server only sends M client models to one client at each round")
+    # MOCHA
+    parser.add_argument('-itk', "--itk", type=int, default=4000,
+                        help="The iterations for solving quadratic subproblems")
+    # FedAMP
+    parser.add_argument('-alk', "--alphaK", type=float, default=1.0,
+                        help="lambda/sqrt(GLOABL-ITRATION) according to the paper")
+    parser.add_argument('-sg', "--sigma", type=float, default=1.0)
+    # HeurFedAMP
+    parser.add_argument('-xi', "--xi", type=float, default=1.0)
+    # FedMD
+    parser.add_argument('-stepalignment', "--sa", type=int, default=1)
 
-        config = parser.parse_args()
+    config = parser.parse_args()
 
-        # with torch.profiler.profile(
-        #     activities=[
-        #         torch.profiler.ProfilerActivity.CPU,
-        #         torch.profiler.ProfilerActivity.CUDA],
-        #     profile_memory=True,
-        #     on_trace_ready=torch.profiler.tensorboard_trace_handler('./log')
-        #     ) as prof:
-        # with torch.autograd.profiler.profile(profile_memory=True) as prof:
+    # with torch.profiler.profile(
+    #     activities=[
+    #         torch.profiler.ProfilerActivity.CPU,
+    #         torch.profiler.ProfilerActivity.CUDA],
+    #     profile_memory=True,
+    #     on_trace_ready=torch.profiler.tensorboard_trace_handler('./log')
+    #     ) as prof:
+    # with torch.autograd.profiler.profile(profile_memory=True) as prof:
 
-        user_num = 20
+    user_num = 20
 
-        if config.dataset == "Cifar10":
-            if user_num == 20:
-                log_dir = "./20_0.5Dirichlet_Serched_result.log"
-            else:
-                log_dir = "./0.5Dirichlet_Serched_result.log"
-        elif config.dataset == "Cifar100":
-            log_dir = "./0.5Dirichlet_Serched_result_cifar100.log"
-        # model_list = ["resnet", "GDAS_V1"]
-        genotype_list = {}
-        user_list = {}
-        user = 0
-        choose_epoch = 50
-        log_swith = False
-        alpha_buffer = ""
-        add_record = 0
-        alpha_dict = {}
+    if config.dataset == "Cifar10":
+        if user_num == 20:
+            log_dir = "./20_0.5Dirichlet_Serched_result.log"
+        else:
+            log_dir = "./0.5Dirichlet_Serched_result.log"
+    elif config.dataset == "Cifar100":
+        log_dir = "./0.5Dirichlet_Serched_result_cifar100.log"
+    # model_list = ["resnet", "GDAS_V1"]
+    genotype_list = {}
+    user_list = {}
+    user = 0
+    choose_epoch = 50
+    log_swith = False
+    alpha_buffer = ""
+    add_record = 0
+    alpha_dict = {}
+    #
+    # for line in open(log_dir):
+    #     if log_swith:
+    #         alpha_buffer += line
+    #         add_record+=1
+    #         if 'cuda' in line:
+    #             log_swith = False
+    #             alpha_tep = re.findall(re.compile(r'[[](.*)[]]', re.S), alpha_buffer)[0]
+    #             alpha_tep = "alpha_tep = ["+alpha_tep+"]"
+    #             exec(alpha_tep)
+    #             print(alpha_tep)
+    #             if user%user_num in alpha_dict:
+    #                 alpha_dict[user%user_num] = alpha_dict[user%user_num] + alpha_tep
+    #             else:
+    #                 alpha_dict[user%user_num] = alpha_tep
+    #             alpha_buffer = ""
+    #     if "<<<<--->>>>" in line:
+    #         if user//user_num == choose_epoch:
+    #             alpha_buffer = line
+    #             log_swith = True
+    #             add_record = 1
+    #     elif "<<<--->>>" in line:
+    #         tep_dict = ast.literal_eval(re.search('({.+})', line).group(0))
+    #         count = 0
+    #         for j in tep_dict['normal']:
+    #             for k in j:
+    #                 if 'skip_connect' in k[0]:
+    #                     count += 1
+    #         if choose_epoch !=None:
+    #             if user//user_num == choose_epoch:
+    #                 # if user%user_num not in genotype_list:
+    #                 # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
+    #                 genotype_list[user % user_num] = tep_dict
+    #                 user_list[user % user_num] = user // user_num
+    #         else:
+    #             if count == 2:
+    #                 # if user%user_num not in genotype_list:
+    #                 # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
+    #                 genotype_list[user % user_num] = tep_dict
+    #                 user_list[user % user_num] = user // user_num
+    #         user += 1
+    #
+    # for user in user_list:
+    #     print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
+    model_owner = 4
+    K = user_num
 
+    config.num_clients = user_num
+    config.join_clients = user_num/2
+    choose_client = list(range(user_num))
+    # base_alpha = alpha_dict[model_owner]
+    # distance_dict = {}
+    # for one in alpha_dict:
+    #     distance_dict[one] = distance_calculation(base_alpha, alpha_dict[one])
 
-        for line in open(log_dir):
-            if log_swith:
-                alpha_buffer += line
-                add_record+=1
-                if 'cuda' in line:
-                    log_swith = False
-                    alpha_tep = re.findall(re.compile(r'[[](.*)[]]', re.S), alpha_buffer)[0]
-                    alpha_tep = "alpha_tep = ["+alpha_tep+"]"
-                    exec(alpha_tep)
-                    print(alpha_tep)
-                    if user%user_num in alpha_dict:
-                        alpha_dict[user%user_num] = alpha_dict[user%user_num] + alpha_tep
-                    else:
-                        alpha_dict[user%user_num] = alpha_tep
-                    alpha_buffer = ""
-            if "<<<<--->>>>" in line:
-                if user//user_num == choose_epoch:
-                    alpha_buffer = line
-                    log_swith = True
-                    add_record = 1
-            elif "<<<--->>>" in line:
-                tep_dict = ast.literal_eval(re.search('({.+})', line).group(0))
-                count = 0
-                for j in tep_dict['normal']:
-                    for k in j:
-                        if 'skip_connect' in k[0]:
-                            count += 1
-                if choose_epoch !=None:
-                    if user//user_num == choose_epoch:
-                        # if user%user_num not in genotype_list:
-                        # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
-                        genotype_list[user % user_num] = tep_dict
-                        user_list[user % user_num] = user // user_num
-                else:
-                    if count == 2:
-                        # if user%user_num not in genotype_list:
-                        # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
-                        genotype_list[user % user_num] = tep_dict
-                        user_list[user % user_num] = user // user_num
-                user += 1
+    # dic1SortList = sorted(distance_dict.items(), key=lambda x: x[1], reverse=False)
 
-        for user in user_list:
-            print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
+    # choose_client = [dic1SortList[i][0] for i in range(K)]
 
-        model_owner = 4
-        K = 10
-
-        config.num_clients = user_num
-        config.join_clients = K
-
-
-        base_alpha = alpha_dict[model_owner]
-        distance_dict = {}
-        for one in alpha_dict:
-            distance_dict[one] = distance_calculation(base_alpha, alpha_dict[one])
-
-        dic1SortList = sorted(distance_dict.items(), key=lambda x: x[1], reverse=False)
-
-        choose_client = [dic1SortList[i][0] for i in range(K)]
-
-        print(genotype_list)
-        resume_path = None
+    # print(genotype_list)
+    resume_path = None
 
 
 
-        # model_owner = 0
+    # model_owner = 0
 
-        # algorithm = "Local"
-        # algorithm = "Local"
-        # algorithm_list = ["FedAMP"]
-        # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
-        # algorithm_list = ["FedAvg"]
-        config.model = "cnn"
-        algorithm = "FedMD"
-        # model_owner = None
-        resume_str = None
+    # algorithm = "Local"
+    # algorithm = "Local"
+    # algorithm_list = ["FedAMP"]
+    # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
+    # algorithm_list = ["FedAvg"]
+    config.model = "cnn"
+    algorithm = "FedMD"
+    # model_owner = None
+    resume_str = None
+    genotype = None
 
-        for model_owner in [1]:
-            config.algorithm = algorithm
-            if config.model in Networks:
-                genotype = Networks[config.model]
-                wandb_project = "NAS+X"
-                run_name = "{}-{}-{}".format(config.model, algorithm, config.dataset)
-            else:
-                wandb_project = "PAS+X"
-                if model_owner != None:
-                    genotype = genotype_list[model_owner]
-                    run_name = "{}-{}-{}-{}-{}".format(config.model, model_owner, algorithm, config.dataset, K)
-                    config.local_learning_rate = 0.01
-                else:
-                    genotype = None
-            seed = 666
-            prepare_seed(seed)
-            if resume_str!=None:
-                resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
-            if user_num == 20:
-                wandb_project = "scalability experiment"
-            wandb_project = "ECCV"
-            run_name += "-{}".format(step)
-            wandb.init(project=wandb_project, name=run_name, resume=resume_str)
-
-            if config.algorithm == "FedProx":
-                config.mu = 0.001
-            elif config.algorithm == "pFedMe":
-                config.beta = 1
-                config.lamda = 15
+    for model_owner in [1]:
+        config.algorithm = algorithm
+        if config.model in Networks:
+            genotype = Networks[config.model]
+            wandb_project = "NAS+X"
+            run_name = "{}-{}-{}".format(config.model, algorithm, config.dataset)
+        else:
+            wandb_project = "PAS+X"
+            if model_owner != None:
+                # genotype = genotype_list[model_owner]
+                run_name = "{}-{}-{}-{}-{}".format(config.model, model_owner, algorithm, config.dataset, K)
                 config.local_learning_rate = 0.01
-            elif config.algorithm == "PerAvg":
-                config.beta = 0.001
-                config.local_learning_rate = 0.01
-            elif config.algorithm == "FedFomo":
-                config.M = 5
-            elif config.algorithm == "MOCHA":
-                config.itk = 4000
-            elif config.algorithm == "FedAMP":
-                config.alphaK = 5e-3
-                config.lamda = 5e-7
-                config.sigma = 1e-1
-            elif config.algorithm == "HeurFedAMP":
-                config.alphaK  = 2.5e-1
-                config.lamda = 2.5e-5
-                config.sigma = 10
-                config.xi = 0.998
-            elif config.algorithm == "FedRep":
-                config.local_learning_rate = 0.001
+            else:
+                genotype = None
+        seed = 666
+        prepare_seed(seed)
+        if resume_str!=None:
+            resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
+        if user_num == 20:
+            wandb_project = "scalability experiment"
+        wandb_project = "ECCV"
+        wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
-            print(run_name)
-            print_info(config)
-            step_alignment = step
-            run(
-                goal=config.goal,
-                dataset=config.dataset,
-                num_labels=config.num_labels,
-                device=config.device,
-                algorithm=config.algorithm,
-                model=config.model,
-                local_batch_size=config.local_batch_size,
-                local_learning_rate=config.local_learning_rate,
-                global_rounds=config.global_rounds,
-                local_steps=config.local_steps,
-                join_clients=config.join_clients,
-                num_clients=config.num_clients,
-                beta=config.beta,
-                lamda=config.lamda,
-                K=config.K,
-                p_learning_rate=config.p_learning_rate,
-                times=config.times,
-                eval_gap=config.eval_gap,
-                client_drop_rate=config.client_drop_rate,
-                train_slow_rate=config.train_slow_rate,
-                send_slow_rate=config.send_slow_rate,
-                time_select=config.time_select,
-                time_threthold=config.time_threthold,
-                M = config.M,
-                mu=config.mu,
-                itk=config.itk,
-                alphaK=config.alphaK,
-                sigma=config.sigma,
-                xi=config.xi,
-                genotype=genotype,
-                run_name = run_name,
-                resume_path = resume_path,
-                choose_client = choose_client,
-                step_alignment= step_alignment
-            )
+        if config.algorithm == "FedProx":
+            config.mu = 0.001
+        elif config.algorithm == "pFedMe":
+            config.beta = 1
+            config.lamda = 15
+            config.local_learning_rate = 0.01
+        elif config.algorithm == "PerAvg":
+            config.beta = 0.001
+            config.local_learning_rate = 0.01
+        elif config.algorithm == "FedFomo":
+            config.M = 5
+        elif config.algorithm == "MOCHA":
+            config.itk = 4000
+        elif config.algorithm == "FedAMP":
+            config.alphaK = 5e-3
+            config.lamda = 5e-7
+            config.sigma = 1e-1
+        elif config.algorithm == "HeurFedAMP":
+            config.alphaK  = 2.5e-1
+            config.lamda = 2.5e-5
+            config.sigma = 10
+            config.xi = 0.998
+        elif config.algorithm == "FedRep":
+            config.local_learning_rate = 0.001
 
-            wandb.finish()
-            torch.cuda.empty_cache()
+        print(run_name)
+        print_info(config)
+        step_alignment = 8
+        run(
+            goal=config.goal,
+            dataset=config.dataset,
+            num_labels=config.num_labels,
+            device=config.device,
+            algorithm=config.algorithm,
+            model=config.model,
+            local_batch_size=config.local_batch_size,
+            local_learning_rate=config.local_learning_rate,
+            global_rounds=config.global_rounds,
+            local_steps=config.local_steps,
+            join_clients=config.join_clients,
+            num_clients=config.num_clients,
+            beta=config.beta,
+            lamda=config.lamda,
+            K=config.K,
+            p_learning_rate=config.p_learning_rate,
+            times=config.times,
+            eval_gap=config.eval_gap,
+            client_drop_rate=config.client_drop_rate,
+            train_slow_rate=config.train_slow_rate,
+            send_slow_rate=config.send_slow_rate,
+            time_select=config.time_select,
+            time_threthold=config.time_threthold,
+            M = config.M,
+            mu=config.mu,
+            itk=config.itk,
+            alphaK=config.alphaK,
+            sigma=config.sigma,
+            xi=config.xi,
+            genotype=genotype,
+            run_name = run_name,
+            resume_path = resume_path,
+            choose_client = choose_client,
+            step_alignment= step_alignment
+        )
+
+        wandb.finish()
+        torch.cuda.empty_cache()
 
 
         # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))

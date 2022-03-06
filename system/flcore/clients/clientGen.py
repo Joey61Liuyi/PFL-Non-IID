@@ -6,7 +6,7 @@ import numpy as np
 import time
 
 
-class clientFedMD(Client):
+class clientGen(Client):
     def __init__(self, device, numeric_id, train_slow, send_slow, train_data, test_data, model, batch_size,
                  learning_rate,
                  local_steps):
@@ -15,27 +15,9 @@ class clientFedMD(Client):
                          local_steps)
 
         self.loss = nn.CrossEntropyLoss()
-        self.MD_loss = nn.KLDivLoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate)
-        self.aggregated_logits = None
-        self.MD_logits = None
         # self.scheduler = OrCosineAnnealingLR(self.optimizer, 5, 100, 95, 1e-4)
         # scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.65)
-
-    def predict(self, x):
-        self.model.eval()
-        logits = self.nas_competetive_output(self.model(x))
-        self.MD_logits = logits
-        return logits
-
-    def MD_aggregation(self,x,  aggregated_logits):
-        self.model.train()
-        self.optimizer.zero_grad()
-        output = self.model(x)
-        output = self.nas_competetive_output(output)
-        loss = self.MD_loss(output, aggregated_logits)
-        loss.backward()
-        self.optimizer.step()
 
     def train(self):
         start_time = time.time()
@@ -74,6 +56,8 @@ class clientFedMD(Client):
             loss = self.loss(output, y)
             loss.backward()
             self.optimizer.step()
+
         # self.model.cpu()
+
         self.train_time_cost['num_rounds'] += 1
         self.train_time_cost['total_cost'] += time.time() - start_time

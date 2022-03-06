@@ -8,6 +8,7 @@ from PIL import Image
 
 
 Dataset2Class = {
+    "mnist": 10,
     "cifar10": 10,
     "cifar100": 100,
     "imagenet-1k-s": 1000,
@@ -126,6 +127,8 @@ def get_datasets(name, root, cutout):
         std = [x / 255 for x in [63.22, 61.26, 65.09]]
     elif name.startswith("mini-imagenet"):
         mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+    elif name == 'mnist':
+        pass
     else:
         raise TypeError("Unknow dataset : {:}".format(name))
 
@@ -215,6 +218,8 @@ def get_datasets(name, root, cutout):
                                            transforms.ToTensor(),
                                            transforms.Normalize(mean, std)])
         xshape = (1, 3, 224, 224)
+    elif name =="mnist":
+        pass
     else:
         raise TypeError("Unknow dataset : {:}".format(name))
 
@@ -234,6 +239,15 @@ def get_datasets(name, root, cutout):
             root, train=False, transform=test_transform, download=True
         )
         assert len(train_data) == 50000 and len(test_data) == 10000
+
+    elif name == 'mnist':
+        transform = transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+
+        train_data = dset.MNIST(root=root, train=True, download=True, transform=transform)
+        test_data = dset.MNIST(root=root, train=False, download=True, transform=transform)
+        xshape = ((1, 1, 32, 32))
+
     elif name.startswith("imagenet-1k"):
         train_data = dset.ImageFolder(osp.join(root, "train"), train_transform)
         test_data = dset.ImageFolder(osp.join(root, "val"), test_transform)
@@ -354,7 +368,7 @@ if __name__ == '__main__':
     user_data = {}
     alpha = 0.5
     user_num = 5
-    data_name = 'cifar100'
+    data_name = 'mnist'
     root = '../dataset/{}'.format(data_name)
     train_data, test_data, xshape, class_num = get_datasets(data_name, root, 0)
     tep_train, tep_valid, tep_public = data_partition(train_data, test_data, alpha, user_num)
@@ -367,7 +381,6 @@ if __name__ == '__main__':
             a = np.random.choice(tep_train[one], int(len(tep_train[one]) / 2), replace=False)
             user_data[one] = {'train': list(set(a)), 'test': list(set(tep_train[one]) - set(a)),
                               'valid': tep_valid[one]}
-
 
     user_data["public"] = tep_public
     np.save('{}_Dirichlet_{}_Use_valid_{}_{}_non_iid_setting.npy'.format(user_num, alpha, valid_use, data_name), user_data)

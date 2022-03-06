@@ -70,13 +70,9 @@ class Server(object):
             test_set = torchvision.datasets.CIFAR10(
                 "../dataset/Cifar10/rawdata", train=False, transform=test_transform, download=True
             )
-
             trainloader = torch.utils.data.DataLoader(train_set, batch_size=len(train_set.data), shuffle=False)
             testloader = torch.utils.data.DataLoader(test_set, batch_size=len(test_set.data), shuffle=False)
-            for _, train_data in enumerate(trainloader, 0):
-                train_set.data, train_set.targets = train_data
-            for _, train_data in enumerate(testloader, 0):
-                test_set.data, test_set.targets = train_data
+
         elif dataset == "Cifar100":
             mean = [x / 255 for x in [129.3, 124.1, 112.4]]
             std = [x / 255 for x in [68.2, 65.4, 70.4]]
@@ -100,14 +96,24 @@ class Server(object):
             assert len(train_set) == 50000 and len(test_set) == 10000
             trainloader = torch.utils.data.DataLoader(train_set, batch_size=len(train_set.data), shuffle=False)
             testloader = torch.utils.data.DataLoader(test_set, batch_size=len(test_set.data), shuffle=False)
-            for _, train_data in enumerate(trainloader, 0):
-                train_set.data, train_set.targets = train_data
-            for _, train_data in enumerate(testloader, 0):
-                test_set.data, test_set.targets = train_data
 
-        user_data = np.load('./20_Dirichlet_0.5_Use_valid_False_{}_non_iid_setting.npy'.format(dataset),
+
+        elif dataset == "mnist":
+            transform = transforms.Compose(
+                [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+
+            train_set = torchvision.datasets.MNIST(root="../dataset/{}/rawdata".format(dataset), train=True, download=True, transform=transform)
+            test_set = torchvision.datasets.MNIST(root="../dataset/{}/rawdata".format(dataset), train=False, download=True, transform=transform)
+            trainloader = torch.utils.data.DataLoader(train_set, batch_size=len(train_set.data), shuffle=False)
+            testloader = torch.utils.data.DataLoader(test_set, batch_size=len(test_set.data), shuffle=False)
+
+        for _, train_data in enumerate(trainloader, 0):
+            train_set.data, train_set.targets = train_data
+        for _, train_data in enumerate(testloader, 0):
+            test_set.data, test_set.targets = train_data
+
+        user_data = np.load('./{}_Dirichlet_0.5_Use_valid_False_{}_non_iid_setting.npy'.format(num_clients, dataset),
                             allow_pickle=True).item()
-
         train_all = []
         test_all = []
         public = []
