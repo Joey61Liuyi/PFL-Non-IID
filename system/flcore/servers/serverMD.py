@@ -85,7 +85,7 @@ class FedMD(Server):
                     "epoch": i
                 }
                 # print(info_dict)
-                # wandb.log(info_dict)
+                wandb.log(info_dict)
             self.selected_clients = self.clients
             for client in self.clients:
                 # client.scheduler.update(i, 0.0)

@@ -458,7 +458,7 @@ if __name__ == "__main__":
     if user_num == 20:
         wandb_project = "scalability experiment"
     wandb_project = "ECCV_new"
-    # wandb.init(project=wandb_project, name=run_name, resume=resume_str)
+    wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
     if config.algorithm == "FedProx":
         config.mu = 0.001
