@@ -27,7 +27,7 @@ class clientFedMD(Client):
         # scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.65)
 
     def predict(self, x):
-        self.model.eval()
+        # self.model.eval()
         # logits = self.nas_competetive_output(self.model(x))
         output = self.model(x)
         if isinstance(output, tuple):
@@ -35,24 +35,24 @@ class clientFedMD(Client):
             for j in range(len(cell_result)):
                 cell_result[j] = cell_result[j].detach().view(-1)
                 cell_result[j] = F.log_softmax(cell_result[j])
-            cell_result.append(logits.detach())
-        # self.MD_logits = cell_result
+        cell_result = [cell_result[-2], cell_result[-1]]
+        self.MD_logits = cell_result
         return cell_result
 
     def MD_aggregation(self,x,  aggregated_logits):
-        self.model.train()
+        # self.model.train()
         self.MD_optimizer.zero_grad()
-        output = self.model(x)
-        if isinstance(output, tuple):
-            logits, cell_result = output
-            for j in range(len(cell_result)):
-                cell_result[j] = cell_result[j].view(-1)
-                cell_result[j] = F.log_softmax(cell_result[j])
-            cell_result.append(logits)
+        # output = self.model(x)
+        # if isinstance(output, tuple):
+        #     logits, cell_result = output
+        #     for j in range(len(cell_result)):
+        #         cell_result[j] = cell_result[j].view(-1)
+        #         cell_result[j] = F.log_softmax(cell_result[j])
+        # cell_result = [cell_result[-1]]
 
         loss = 0
-        for i in range(len(cell_result)):
-            loss += self.MD_loss(cell_result[i], aggregated_logits[i])/len(cell_result[i])
+        for i in range(len(self.MD_logits)):
+            loss += self.MD_loss(self.MD_logits[i], aggregated_logits[i])
         # loss = [self.MD_loss(cell_result[i], aggregated_logits[i]) for i in range(len(output))]
         # output = self.nas_competetive_output(output)
         # loss = self.MD_loss(output[0], aggregated_logits[0]) + self.MD_loss(output[1], aggregated_logits[1])
