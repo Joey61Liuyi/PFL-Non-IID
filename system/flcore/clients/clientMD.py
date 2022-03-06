@@ -20,7 +20,7 @@ class clientFedMD(Client):
         self.loss = nn.CrossEntropyLoss()
         self.MD_loss = nn.KLDivLoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate)
-        self.MD_optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        self.MD_optimizer = torch.optim.SGD(self.model.parameters(), lr=0.01)
         self.aggregated_logits = None
         self.MD_logits = None
         # self.scheduler = OrCosineAnnealingLR(self.optimizer, 5, 100, 95, 1e-4)
@@ -52,7 +52,7 @@ class clientFedMD(Client):
 
         loss = 0
         for i in range(len(cell_result)):
-            loss += self.MD_loss(cell_result[i], aggregated_logits[i])/len(cell_result)
+            loss += self.MD_loss(cell_result[i], aggregated_logits[i])/len(cell_result[i])
         # loss = [self.MD_loss(cell_result[i], aggregated_logits[i]) for i in range(len(output))]
         # output = self.nas_competetive_output(output)
         # loss = self.MD_loss(output[0], aggregated_logits[0]) + self.MD_loss(output[1], aggregated_logits[1])
