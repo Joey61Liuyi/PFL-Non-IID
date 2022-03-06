@@ -316,13 +316,11 @@ class Server(object):
     # evaluate all clients
     def evaluate(self, epoch):
         stats = self.test_accuracy(epoch)
-        # stats_train = self.train_accuracy_and_loss()
+        stats_train = self.train_accuracy_and_loss()
 
         test_acc = sum(stats[2])*1.0 / sum(stats[1])
-        # train_acc = sum(stats_train[2])*1.0 / sum(stats_train[1])
-        # train_loss = sum(stats_train[3])*1.0 / sum(stats_train[1])
-        train_acc = 0
-        train_loss = 0
+        train_acc = sum(stats_train[2])*1.0 / sum(stats_train[1])
+        train_loss = sum(stats_train[3])*1.0 / sum(stats_train[1])
         personalized_acc = stats[3]
         
         self.rs_test_acc.append(test_acc)
