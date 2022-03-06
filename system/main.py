@@ -59,7 +59,7 @@ def prepare_seed(rand_seed):
 
 def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, local_learning_rate, global_rounds, local_steps, join_clients, 
         num_clients, beta, lamda, K, p_learning_rate, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, 
-        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi, genotype, run_name, resume_path, choose_client, step_alignment, start_epoch):
+        time_select, time_threthold, M, mu, itk, alphaK, sigma, xi, genotype, run_name, resume_path, choose_client, step_alignment, start_epoch=0):
 
     time_list = []
     reporter = MemReporter()
