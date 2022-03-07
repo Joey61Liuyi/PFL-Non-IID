@@ -280,7 +280,7 @@ def print_info(config):
 
 if __name__ == "__main__":
 
-    for iid in [0.01,0.1, 0.5, 1,10]:
+    for iid in [0.01]:
         total_start = time.time()
 
         parser = argparse.ArgumentParser()
