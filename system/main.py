@@ -129,7 +129,7 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
                 "dataset": "cifar",
                 "class_num": class_num,
                 "ichannel": 33,
-                "layers": 3,
+                "layers": 2,
                 "stem_multi": 3,
                 "auxiliary": 1,
                 "drop_path_prob": 0.2
