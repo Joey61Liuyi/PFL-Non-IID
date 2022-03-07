@@ -24,7 +24,7 @@ from flcore.trainmodel.models import *
 from flcore.trainmodel.resnet import resnet18 as resnet
 from utils.result_utils import average_data
 from utils.mem_utils import MemReporter
-from models import Networks, obtain_model
+from models import Networks, obtain_model, create_cnn_model
 from collections import namedtuple
 warnings.simplefilter("ignore")
 import ast
@@ -121,22 +121,31 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
                 class_num = 100
             elif dataset == "Cifar10":
                 class_num = 10
-            model_config_dict = {
-                "super_type": "infer-nasnet.cifar",
-                "genotype": "none",
-                "dataset": "cifar",
-                "class_num": class_num,
-                "ichannel": 33,
-                "layers": 2,
-                "stem_multi": 3,
-                "auxiliary": 1,
-                "drop_path_prob": 0.2
-            }
-            Arguments = namedtuple("Configure", " ".join(model_config_dict.keys()))
-            content = Arguments(**model_config_dict)
-            Model = obtain_model(content, genotype)
-            Model = Model.to(device)
-
+            # model_config_dict = {
+            #     "super_type": "infer-nasnet.cifar",
+            #     "genotype": "none",
+            #     "dataset": "cifar",
+            #     "class_num": class_num,
+            #     "ichannel": 33,
+            #     "layers": 2,
+            #     "stem_multi": 3,
+            #     "auxiliary": 1,
+            #     "drop_path_prob": 0.2
+            # }
+            # Arguments = namedtuple("Configure", " ".join(model_config_dict.keys()))
+            # content = Arguments(**model_config_dict)
+            # Model = []
+            # if start_epoch == 0:
+            #     for i in range(len(genotype)):
+            #         Model_tep = obtain_model(content, genotype[i])
+            #         Model_tep = Model_tep.to(device)
+            #         Model.append(Model_tep)
+            # else:
+            #     for i in range(user_num):
+            #         Model_tep = torch.load("./models/{}/{}_{}_{}.pt".format(dataset,algorithm,i,start_epoch))
+            #         Model_tep = Model_tep.to(device)
+            #         Model.append(Model_tep)
+            Model = create_cnn_model(model)
         # select algorithm
         if algorithm == "FedAvg":
             server = FedAvg(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
@@ -330,12 +339,12 @@ if __name__ == "__main__":
     #     activities=[
     #         torch.profiler.ProfilerActivity.CPU,
     #         torch.profiler.ProfilerActivity.CUDA],
-    #     profile_memory=True, 
+    #     profile_memory=True,
     #     on_trace_ready=torch.profiler.tensorboard_trace_handler('./log')
     #     ) as prof:
     # with torch.autograd.profiler.profile(profile_memory=True) as prof:
 
-    user_num = 20
+    user_num = 5
 
     if config.dataset == "Cifar10":
         if user_num == 20:
@@ -399,22 +408,22 @@ if __name__ == "__main__":
     for user in user_list:
         print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
 
-    model_owner = 4
-    K = 10
+    model_owner = 0
+    K = user_num
 
     config.num_clients = user_num
     config.join_clients = K
 
 
-    base_alpha = alpha_dict[model_owner]
+    # base_alpha = alpha_dict[model_owner]
     distance_dict = {}
-    for one in alpha_dict:
-        distance_dict[one] = distance_calculation(base_alpha, alpha_dict[one])
+    # for one in alpha_dict:
+    #     distance_dict[one] = distance_calculation(base_alpha, alpha_dict[one])
 
     dic1SortList = sorted(distance_dict.items(), key=lambda x: x[1], reverse=False)
 
-    choose_client = [dic1SortList[i][0] for i in range(K)]
-
+    # choose_client = [dic1SortList[i][0] for i in range(K)]
+    choose_client = list(range(5))
     print(genotype_list)
     resume_path = None
 
@@ -427,7 +436,7 @@ if __name__ == "__main__":
     # algorithm_list = ["FedAMP"]
     # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
     # algorithm_list = ["FedAvg"]
-    config.model = "Searched"
+    config.model = "resnet14"
     algorithm = "FedAvg"
     # model_owner = None
     resume_str = None
