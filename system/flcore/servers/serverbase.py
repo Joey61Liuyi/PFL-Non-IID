@@ -13,7 +13,7 @@ import torchvision
 class Server(object):
     def __init__(self, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                  num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, 
-                 time_threthold, run_name):
+                 time_threthold, run_name, non_iid_level):
         # Set up the main attributes
         self.dataset = dataset
         self.global_rounds = global_rounds
@@ -115,7 +115,7 @@ class Server(object):
         for _, train_data in enumerate(testloader, 0):
             test_set.data, test_set.targets = train_data
 
-        user_data = np.load('./Dirichlet_0.5_Use_valid_False_{}_non_iid_setting.npy'.format(dataset.lower()),
+        user_data = np.load('./{}_Dirichlet_{}_Use_valid_False_{}_non_iid_setting.npy'.format(num_clients, non_iid_level, dataset.lower()),
                             allow_pickle=True).item()
         train_all = []
         test_all = []
