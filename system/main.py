@@ -290,7 +290,7 @@ if __name__ == "__main__":
     parser.add_argument('-dev', "--device", type=str, default="cuda",
                         choices=["cpu", "cuda"])
     parser.add_argument('-did', "--device_id", type=str, default="0")
-    parser.add_argument('-data', "--dataset", type=str, default="Cifar10", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
+    parser.add_argument('-data', "--dataset", type=str, default="Cifar100", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
     parser.add_argument('-nb', "--num_labels", type=int, default=10)
     # parser.add_argument('-m', "--model", type=str, default="cnn")
     parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
@@ -463,7 +463,7 @@ if __name__ == "__main__":
         resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
     if user_num == 20:
         wandb_project = "scalability experiment"
-    wandb_project = "ECCV_new"
+    wandb_project = "ECCV_new_cifar100"
     wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
     if config.algorithm == "FedProx":
@@ -529,7 +529,7 @@ if __name__ == "__main__":
         resume_path = resume_path,
         choose_client = choose_client,
         step_alignment= step_alignment,
-        start_epoch=200
+        start_epoch=0
     )
 
     wandb.finish()

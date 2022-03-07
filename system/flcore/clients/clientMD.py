@@ -34,7 +34,7 @@ class clientFedMD(Client):
             for j in range(len(cell_result)):
                 cell_result[j] = cell_result[j].view(-1)
                 cell_result[j] = F.log_softmax(cell_result[j])
-        self.MD_logits = [cell_result[-2], cell_result[-1]]
+        self.MD_logits = cell_result[-2:-1]
         cell_result = [self.MD_logits[i].detach() for i in range(len(self.MD_logits))]
         return cell_result
 
@@ -51,7 +51,7 @@ class clientFedMD(Client):
 
         loss = 0
         for i in range(len(self.MD_logits)):
-            loss += self.MD_loss(self.MD_logits[i], aggregated_logits[i])
+            loss += self.MD_loss(self.MD_logits[i], aggregated_logits[i])/2
         # loss = [self.MD_loss(cell_result[i], aggregated_logits[i]) for i in range(len(output))]
         # output = self.nas_competetive_output(output)
         # loss = self.MD_loss(output[0], aggregated_logits[0]) + self.MD_loss(output[1], aggregated_logits[1])
