@@ -115,7 +115,7 @@ class Server(object):
         for _, train_data in enumerate(testloader, 0):
             test_set.data, test_set.targets = train_data
 
-        user_data = np.load('./Dirichlet_0.5_Use_valid_False_{}_non_iid_setting.npy'.format(dataset),
+        user_data = np.load('./Dirichlet_0.5_Use_valid_False_{}_non_iid_setting.npy'.format(dataset.lower()),
                             allow_pickle=True).item()
         train_all = []
         test_all = []

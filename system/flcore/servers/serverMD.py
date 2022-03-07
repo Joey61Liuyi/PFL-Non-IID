@@ -10,6 +10,9 @@ import torchvision.transforms as transforms
 import torchvision
 import numpy as np
 
+
+from system.models import get_model_infos
+
 class FedMD(Server):
     def __init__(self, device, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                  num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, time_threthold, run_name, choose_client, step_alignment):
@@ -18,10 +21,16 @@ class FedMD(Server):
                          time_threthold, run_name)
         # select slow clients
         self.set_slow_clients()
+        flop_list = []
+        param_list = []
         for i, train_slow, send_slow in zip(choose_client, self.train_slow_clients, self.send_slow_clients):
             # train, test = read_client_data(dataset, i)
+            flops, param = get_model_infos(model[i], (1,3,32,32))
+            flop_list.append(flops)
+            param_list.append(param)
             client = clientFedMD(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model[i], batch_size, learning_rate, local_steps)
             self.clients.append(client)
+        print(np.average(flop_list), np.average(param_list))
         self.device = device
         self.public_data_loader = DataLoader(self.public, batch_size, drop_last=True)
         self.alignment_step = step_alignment
