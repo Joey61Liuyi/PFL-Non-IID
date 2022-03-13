@@ -24,7 +24,7 @@ from flcore.trainmodel.models import *
 from flcore.trainmodel.resnet import resnet18 as resnet
 from utils.result_utils import average_data
 from utils.mem_utils import MemReporter
-from models import Networks, obtain_model
+from models import Networks, obtain_model, create_cnn_model
 from collections import namedtuple
 warnings.simplefilter("ignore")
 import ast
@@ -403,7 +403,9 @@ if __name__ == "__main__":
             print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
 
         model_owner = 4
-        K = 10
+        K =user_num
+    # model_owner = 0
+    # K = user_num
 
         config.num_clients = user_num
         config.join_clients = user_num
