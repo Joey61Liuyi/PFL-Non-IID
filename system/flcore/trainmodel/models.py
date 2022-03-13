@@ -92,7 +92,7 @@ class CifarNet(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc(x)
         x = F.log_softmax(x, dim=1)
-        return x1, x
+        return x, x1
 
 # ====================================================================================================================
 

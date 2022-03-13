@@ -101,25 +101,25 @@ class FedMD(Server):
                 # client.scheduler.update(i, 0.0)
                 client.train()
 
-            if i > self.global_rounds/5:
-                for step in range(self.alignment_step):
-                    x, y = self.get_next_train_batch()
-                    logits = []
-                    for client in self.clients:
-                        logits.append(copy.deepcopy(client.predict(x)))
-                    aggregated_logits = []
-                    for j in range(len(logits[0])):
-                        tep = None
-                        for k in range(len(logits)):
-                            if tep == None:
-                                tep = logits[k][j]
-                            else:
-                                tep += logits[k][j]
-                        tep /=len(self.clients)
-                        aggregated_logits.append(tep.detach())
-
-                    for client in self.clients:
-                        client.MD_aggregation(x, aggregated_logits)
+            # if i > self.global_rounds/5:
+            #     for step in range(self.alignment_step):
+            #         x, y = self.get_next_train_batch()
+            #         logits = []
+            #         for client in self.clients:
+            #             logits.append(copy.deepcopy(client.predict(x)))
+            #         aggregated_logits = []
+            #         for j in range(len(logits[0])):
+            #             tep = None
+            #             for k in range(len(logits)):
+            #                 if tep == None:
+            #                     tep = logits[k][j]
+            #                 else:
+            #                     tep += logits[k][j]
+            #             tep /=len(self.clients)
+            #             aggregated_logits.append(tep.detach())
+            #
+            #         for client in self.clients:
+            #             client.MD_aggregation(x, aggregated_logits)
 
 
             # threads = [Thread(target=client.train)

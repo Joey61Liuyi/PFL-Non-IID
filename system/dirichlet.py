@@ -363,24 +363,26 @@ class Lighting(object):
 
 
 if __name__ == '__main__':
-    random.seed(61)
-    np.random.seed(61)
+    seed = 38483
+    random.seed(seed)
+    np.random.seed(seed)
     user_data = {}
-    alpha = 1
-    user_num = 5
-    data_name = 'cifar10'
-    root = '../dataset/{}'.format(data_name)
-    train_data, test_data, xshape, class_num = get_datasets(data_name, root, 0)
-    tep_train, tep_valid, tep_public = data_partition(train_data, test_data, alpha, user_num)
-    valid_use = False
-    for one in tep_train:
-        if valid_use:
-            # a = np.random.choice(tep[one], int(len(tep[one])/2), replace=False)
-            user_data[one] = {'train': tep_train[one], 'test': tep_valid[one]}
-        else:
-            a = np.random.choice(tep_train[one], int(len(tep_train[one]) / 2), replace=False)
-            user_data[one] = {'train': list(set(a)), 'test': list(set(tep_train[one]) - set(a)),
-                              'valid': tep_valid[one]}
+    for i in range(5):
+        alpha = 0.001*pow(10, i)
+        user_num = 5
+        data_name = 'cifar10'
+        root = '../dataset/{}'.format(data_name)
+        train_data, test_data, xshape, class_num = get_datasets(data_name, root, 0)
+        tep_train, tep_valid, tep_public = data_partition(train_data, test_data, alpha, user_num)
+        valid_use = False
+        for one in tep_train:
+            if valid_use:
+                # a = np.random.choice(tep[one], int(len(tep[one])/2), replace=False)
+                user_data[one] = {'train': tep_train[one], 'test': tep_valid[one]}
+            else:
+                a = np.random.choice(tep_train[one], int(len(tep_train[one]) / 2), replace=False)
+                user_data[one] = {'train': list(set(a)), 'test': list(set(tep_train[one]) - set(a)),
+                                  'valid': tep_valid[one]}
 
-    user_data["public"] = tep_public
-    np.save('{}_Dirichlet_{}_Use_valid_{}_{}_non_iid_setting.npy'.format(user_num, alpha, valid_use, data_name), user_data)
+        user_data["public"] = tep_public
+        np.save('{}_Dirichlet_{}_Use_valid_{}_{}_non_iid_setting.npy'.format(user_num, alpha, valid_use, data_name), user_data)

@@ -2,6 +2,7 @@ import copy
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import sys
 
 
 class Client(object):
@@ -112,7 +113,8 @@ class Client(object):
 
         if isinstance(output, tuple):
             output = output[0]
-
+        if torch.all(torch.isnan(output)):
+            sys.exit()
         # if isinstance(output, list):
         #     assert len(output) == 2, "output must has {:} items instead of {:}".format(
         #         2, len(output)

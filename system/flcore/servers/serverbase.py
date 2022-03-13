@@ -13,7 +13,7 @@ import torchvision
 class Server(object):
     def __init__(self, dataset, algorithm, model, batch_size, learning_rate, global_rounds, local_steps, join_clients,
                  num_clients, times, eval_gap, client_drop_rate, train_slow_rate, send_slow_rate, time_select, goal, 
-                 time_threthold, run_name, non_iid_level):
+                 time_threthold, run_name, non_iid_level, start_epoch = 0):
         # Set up the main attributes
         self.dataset = dataset
         self.global_rounds = global_rounds
@@ -30,8 +30,7 @@ class Server(object):
         self.time_select = time_select
         self.goal = goal
         self.time_threthold = time_threthold
-        self.start_epoch = 0
-
+        self.start_epoch = start_epoch
         self.clients = []
         self.selected_clients = []
         self.train_slow_clients = []

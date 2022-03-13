@@ -138,10 +138,14 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
             content = Arguments(**model_config_dict)
             Model = []
             if start_epoch == 0:
-                for i in range(len(genotype)):
-                    Model_tep = obtain_model(content, genotype[i])
-                    Model_tep = Model_tep.to(device)
-                    Model.append(Model_tep)
+                if isinstance(genotype, dict):
+                    for i in range(len(genotype)):
+                        Model_tep = obtain_model(content, genotype[i])
+                        Model_tep = Model_tep.to(device)
+                        Model.append(Model_tep)
+                else:
+                    Model = obtain_model(content, genotype)
+                    Model = Model.to(device)
             else:
                 for i in range(user_num):
                     Model_tep = torch.load("./models/{}/{}_{}_{}.pt".format(dataset,algorithm,i,start_epoch))
@@ -152,7 +156,7 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
         if algorithm == "FedAvg":
             server = FedAvg(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate, 
-                            send_slow_rate, time_select, goal, time_threthold, run_name, choose_client)
+                            send_slow_rate, time_select, goal, time_threthold, run_name, choose_client, iid, start_epoch)
         elif algorithm == "FedGen":
             server = FedGen(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate,
@@ -280,7 +284,8 @@ def print_info(config):
 
 if __name__ == "__main__":
 
-    for iid in [0.01]:
+    for tep1 in range(5):
+        iid = 0.001*pow(10, tep1)
         total_start = time.time()
 
         parser = argparse.ArgumentParser()
@@ -462,7 +467,7 @@ if __name__ == "__main__":
             resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
         if user_num == 20:
             wandb_project = "scalability experiment"
-        wandb_project = "ECCV_new_20"
+        wandb_project = "ECCV_new_non_iid"
         run_name += '-{}'.format(iid)
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
