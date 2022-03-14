@@ -284,8 +284,8 @@ def print_info(config):
 
 if __name__ == "__main__":
 
-    for tep1 in range(5):
-        iid = 0.001*pow(10, tep1)
+    for iid in [0.05, 0.1, 0.5, 1, 5, 10]:
+        # iid = 0.001*pow(10, tep1)
         total_start = time.time()
 
         parser = argparse.ArgumentParser()
@@ -362,7 +362,7 @@ if __name__ == "__main__":
         #     ) as prof:
         # with torch.autograd.profiler.profile(profile_memory=True) as prof:
 
-        user_num = 5
+        user_num = 20
         if config.dataset == "Cifar10":
             if user_num == 20:
                 log_dir = "./20_0.5Dirichlet_Serched_result.log"

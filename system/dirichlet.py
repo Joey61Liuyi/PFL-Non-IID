@@ -1,4 +1,6 @@
 import random
+import sys
+
 import numpy as np
 import torch
 import torchvision.datasets as dset
@@ -363,13 +365,12 @@ class Lighting(object):
 
 
 if __name__ == '__main__':
-    seed = 38483
+    seed = 8144
     random.seed(seed)
     np.random.seed(seed)
     user_data = {}
-    for i in range(5):
-        alpha = 0.001*pow(10, i)
-        user_num = 5
+    for alpha in [0.05, 0.1, 0.5, 1, 5, 10]:
+        user_num = 20
         data_name = 'cifar10'
         root = '../dataset/{}'.format(data_name)
         train_data, test_data, xshape, class_num = get_datasets(data_name, root, 0)
@@ -385,4 +386,13 @@ if __name__ == '__main__':
                                   'valid': tep_valid[one]}
 
         user_data["public"] = tep_public
+        for i in user_data:
+            if i == 'public':
+                pass
+            else:
+                for j in user_data[i]:
+                    if len(user_data[i][j]) <= 16:
+                        print("User_{}_{}_alpha_{}".format(i, j, alpha))
+                        sys.exit()
+
         np.save('{}_Dirichlet_{}_Use_valid_{}_{}_non_iid_setting.npy'.format(user_num, alpha, valid_use, data_name), user_data)

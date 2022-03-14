@@ -26,7 +26,7 @@ class Client(object):
         self.local_steps = local_steps
 
         self.trainloader = DataLoader(train_data, self.batch_size, drop_last=True)
-        self.testloader = DataLoader(test_data, self.batch_size, drop_last=True)
+        self.testloader = DataLoader(test_data, self.batch_size, drop_last=False)
         self.trainloaderfull = DataLoader(train_data, self.batch_size, drop_last=False)
         self.testloaderfull = DataLoader(test_data, self.batch_size, drop_last=False)
         self.iter_trainloader = iter(self.trainloader)
