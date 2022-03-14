@@ -363,13 +363,12 @@ class Lighting(object):
 
 
 if __name__ == '__main__':
-    seed = 38483
+    seed = 61
     random.seed(seed)
     np.random.seed(seed)
     user_data = {}
-    for i in range(8):
-        alpha = 0.001*pow(10, i)
-        user_num = 5
+    for alpha in [0.1, 0.5, 1, 1.5, 2, 10]:
+        user_num = 20
         data_name = 'cifar10'
         root = '../dataset/{}'.format(data_name)
         train_data, test_data, xshape, class_num = get_datasets(data_name, root, 0)

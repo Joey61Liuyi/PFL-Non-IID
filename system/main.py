@@ -184,7 +184,7 @@ def run(goal, dataset, num_labels, device, algorithm, model, local_batch_size, l
         if algorithm == "FedRep":
             server = FedRep(device, dataset, algorithm, Model, local_batch_size, local_learning_rate, global_rounds,
                             local_steps, join_clients, num_clients, i, eval_gap, client_drop_rate, train_slow_rate,
-                            send_slow_rate, time_select, goal, time_threthold, run_name)
+                            send_slow_rate, time_select, goal, time_threthold, run_name, iid)
         if resume_path!=None:
             server.load_model(resume_path)
         del(model)
@@ -262,8 +262,8 @@ def print_info(config):
 
 if __name__ == "__main__":
 
-    for iid in range(8):
-        alpha_iid = 0.001*pow(10, iid)
+    for alpha_iid in [0.1, 0.5, 1, 1.5, 2, 10]:
+        # alpha_iid = 0.001*pow(10, iid)
 
         total_start = time.time()
 
@@ -339,7 +339,7 @@ if __name__ == "__main__":
         #     ) as prof:
         # with torch.autograd.profiler.profile(profile_memory=True) as prof:
 
-        user_num = 5
+        user_num = 20
         if config.dataset == "Cifar10":
             if user_num == 20:
                 log_dir = "./20_0.5Dirichlet_Serched_result.log"
@@ -458,7 +458,7 @@ if __name__ == "__main__":
             if user_num == 20:
                 wandb_project = "scalability experiment"
 
-            wandb_project = "ECCV_non_iid"
+            wandb_project = "ECCV_non_iid_20_user"
             run_name = "{}-{}".format(alpha_iid, config.model)
             wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 
