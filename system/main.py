@@ -284,7 +284,7 @@ def print_info(config):
 
 if __name__ == "__main__":
 
-    for iid in [0.05, 0.1, 0.5, 1, 5, 10]:
+    for iid in [0.5]:
         # iid = 0.001*pow(10, tep1)
         total_start = time.time()
 
@@ -295,14 +295,14 @@ if __name__ == "__main__":
         parser.add_argument('-dev', "--device", type=str, default="cuda",
                             choices=["cpu", "cuda"])
         parser.add_argument('-did', "--device_id", type=str, default="0")
-        parser.add_argument('-data', "--dataset", type=str, default="Cifar10", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
+        parser.add_argument('-data', "--dataset", type=str, default="mnist", choices=["mnist", "synthetic", "Cifar10", "agnews", "fmnist", "Cifar100", "sogounews"])
         parser.add_argument('-nb', "--num_labels", type=int, default=10)
         # parser.add_argument('-m', "--model", type=str, default="cnn")
         parser.add_argument('-lbs', "--local_batch_size", type=int, default=16)
         parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.005,
                             help="Local learning rate")
-        parser.add_argument('-gr', "--global_rounds", type=int, default=1000)
-        parser.add_argument('-ls', "--local_steps", type=int, default=20)
+        parser.add_argument('-gr', "--global_rounds", type=int, default=50)
+        parser.add_argument('-ls', "--local_steps", type=int, default=1)
         parser.add_argument('-algo', "--algorithm", type=str, default="FedAvg",
                             choices=["pFedMe", "PerAvg", "FedAvg", "FedProx", \
                                      "FedFomo", "MOCHA", "FedPlayer", "FedAMP", "HeurFedAMP"])
@@ -379,47 +379,47 @@ if __name__ == "__main__":
         alpha_buffer = ""
         add_record = 0
         alpha_dict = {}
-
-        for line in open(log_dir):
-            if log_swith:
-                alpha_buffer += line
-                add_record += 1
-                if 'cuda' in line:
-                    log_swith = False
-                    alpha_tep = re.findall(re.compile(r'[[](.*)[]]', re.S), alpha_buffer)[0]
-                    alpha_tep = "alpha_tep = ["+alpha_tep+"]"
-                    exec(alpha_tep)
-                    print(alpha_tep)
-                    if user%user_num in alpha_dict:
-                        alpha_dict[user%user_num] = alpha_dict[user%user_num] + alpha_tep
-                    else:
-                        alpha_dict[user%user_num] = alpha_tep
-                    alpha_buffer = ""
-            if "<<<<--->>>>" in line:
-                if user//user_num == choose_epoch:
-                    alpha_buffer = line
-                    log_swith = True
-                    add_record = 1
-            elif "<<<--->>>" in line:
-                tep_dict = ast.literal_eval(re.search('({.+})', line).group(0))
-                count = 0
-                for j in tep_dict['normal']:
-                    for k in j:
-                        if 'skip_connect' in k[0]:
-                            count += 1
-                if choose_epoch !=None:
-                    if user//user_num == choose_epoch:
-                        # if user%user_num not in genotype_list:
-                        # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
-                        genotype_list[user % user_num] = tep_dict
-                        user_list[user % user_num] = user // user_num
-                else:
-                    if count == 2:
-                        # if user%user_num not in genotype_list:
-                        # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
-                        genotype_list[user % user_num] = tep_dict
-                        user_list[user % user_num] = user // user_num
-                user += 1
+        #
+        # for line in open(log_dir):
+        #     if log_swith:
+        #         alpha_buffer += line
+        #         add_record += 1
+        #         if 'cuda' in line:
+        #             log_swith = False
+        #             alpha_tep = re.findall(re.compile(r'[[](.*)[]]', re.S), alpha_buffer)[0]
+        #             alpha_tep = "alpha_tep = ["+alpha_tep+"]"
+        #             exec(alpha_tep)
+        #             print(alpha_tep)
+        #             if user%user_num in alpha_dict:
+        #                 alpha_dict[user%user_num] = alpha_dict[user%user_num] + alpha_tep
+        #             else:
+        #                 alpha_dict[user%user_num] = alpha_tep
+        #             alpha_buffer = ""
+        #     if "<<<<--->>>>" in line:
+        #         if user//user_num == choose_epoch:
+        #             alpha_buffer = line
+        #             log_swith = True
+        #             add_record = 1
+        #     elif "<<<--->>>" in line:
+        #         tep_dict = ast.literal_eval(re.search('({.+})', line).group(0))
+        #         count = 0
+        #         for j in tep_dict['normal']:
+        #             for k in j:
+        #                 if 'skip_connect' in k[0]:
+        #                     count += 1
+        #         if choose_epoch !=None:
+        #             if user//user_num == choose_epoch:
+        #                 # if user%user_num not in genotype_list:
+        #                 # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
+        #                 genotype_list[user % user_num] = tep_dict
+        #                 user_list[user % user_num] = user // user_num
+        #         else:
+        #             if count == 2:
+        #                 # if user%user_num not in genotype_list:
+        #                 # logger.log("user{}'s architecture is chosen from epoch {}".format(user%user_num, user//user_num))
+        #                 genotype_list[user % user_num] = tep_dict
+        #                 user_list[user % user_num] = user // user_num
+        #         user += 1
 
         for user in user_list:
             print("user{}'s architecture is chosen from epoch {}".format(user, user_list[user]))
@@ -445,8 +445,8 @@ if __name__ == "__main__":
         # algorithm_list = ["FedAMP"]
         # algorithm_list = ["FedRep", "FedAMP", "FedAvg"]
         # algorithm_list = ["FedAvg"]
-        config.model = "Searched"
-        algorithm = "FedMD"
+        config.model = "cnn"
+        algorithm = "FedAvg"
         # model_owner = None
         resume_str = None
         genotype = genotype_list
@@ -467,7 +467,7 @@ if __name__ == "__main__":
             resume_path = "./models/{}/{}.pth".format(config.dataset, run_name)
         if user_num == 20:
             wandb_project = "scalability experiment"
-        wandb_project = "ECCV_new_non_iid"
+        wandb_project = "ICDCS_EXTENSION"
         run_name += '-{}'.format(iid)
         wandb.init(project=wandb_project, name=run_name, resume=resume_str)
 

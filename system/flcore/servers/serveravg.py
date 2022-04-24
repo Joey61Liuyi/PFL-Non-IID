@@ -26,16 +26,16 @@ class FedAvg(Server):
         print(f"\nJoin clients / total clients: {self.join_clients} / {self.num_clients}")
         print("Finished creating server and clients.")
 
-    def train(self):
-        for i in range(self.start_epoch, self.global_rounds+1):
+    def train(self, start_epoch):
+        for i in range(start_epoch, self.global_rounds+1):
             print(f"\n-------------Round number: {i}-------------")
             self.send_models()
-            if i<self.global_rounds/2:
-                eval_gap = 50
-            elif i< self.global_rounds*95/100 and i>=self.global_rounds/2:
-                eval_gap = 20
-            else:
-                eval_gap = 1
+            # if i<self.global_rounds/2:
+            #     eval_gap = 50
+            # elif i< self.global_rounds*95/100 and i>=self.global_rounds/2:
+            #     eval_gap = 20
+            # else:
+            eval_gap = 1
             if i%eval_gap == 0:
 
                 print("\nEvaluate global model")

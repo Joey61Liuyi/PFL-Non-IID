@@ -369,9 +369,9 @@ if __name__ == '__main__':
     random.seed(seed)
     np.random.seed(seed)
     user_data = {}
-    for alpha in [0.05, 0.1, 0.5, 1, 5, 10]:
+    for alpha in [0.5]:
         user_num = 20
-        data_name = 'cifar10'
+        data_name = 'mnist'
         root = '../dataset/{}'.format(data_name)
         train_data, test_data, xshape, class_num = get_datasets(data_name, root, 0)
         tep_train, tep_valid, tep_public = data_partition(train_data, test_data, alpha, user_num)
