@@ -16,9 +16,20 @@ class FedAvg(Server):
                          time_threthold, run_name, non_iid_level, start_epoch)
         # select slow clients
         self.set_slow_clients()
+
+        malicious_1, malicious_2 = [], []
+        malicious_1 = np.random.choice(choose_client, round(len(choose_client)/4), replace=False)
+        tep = list(set(choose_client).difference(set(malicious_1)))
+        malicious_2 = np.random.choice(tep, round(len(choose_client)/4), replace=False)
         for i, train_slow, send_slow in zip(choose_client, self.train_slow_clients, self.send_slow_clients):
             # train, test = read_client_data(dataset, i)
-            client = clientAVG(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size, learning_rate, local_steps)
+            if i in malicious_1:
+                malicious_type = 1
+            elif i in malicious_2:
+                malicious_type = 2
+            else:
+                malicious_type = 0
+            client = clientAVG(device, i, train_slow, send_slow, self.train_all[i], self.test_all[i], model, batch_size, learning_rate, local_steps, malicious_type)
             self.clients.append(client)
         del(self.train_all)
         del(self.test_all)
